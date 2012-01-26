@@ -1,7 +1,7 @@
 Motes
 =====
 
-Forget Evernote, is Motes.
+Forget Evernote, use Motes.
 
 Usage
 -----
