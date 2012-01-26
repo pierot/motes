@@ -1,8 +1,11 @@
-#! /user/bin/env python
+#! /usr/bin/env python
 
 import sys
 import optparse
 import datetime
+import glob
+
+from os.path import basename
 
 def main():
   usage = "Usage: %prog [command] [options]"
@@ -37,7 +40,13 @@ def exec_find(args):
   print args
 
 def exec_list(args):
-  print args
+  files = glob.glob('/Users/pieterm/Dropbox/Private/notes/*')
+ 
+  if len(files) > 0:
+    print "All motes\n"
+
+  for idx, file in enumerate(files):
+    print "[" + str(idx) + "]\t" + basename(file)
 
 def exec_open(args):
   print args
