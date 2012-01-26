@@ -5,7 +5,10 @@ import optparse
 import datetime
 import glob
 
+from subprocess import call
+
 from os.path import basename
+from os.path import isfile
 
 def main():
   usage = "Usage: %prog [command] [options]"
@@ -49,7 +52,18 @@ def exec_list(args):
     print "[" + str(idx) + "]\t" + basename(file)
 
 def exec_open(args):
-  print args
+  if len(args) == 0:
+    print "No note name given."
+
+    sys.exit(0)
+  else:
+    filename = args[0]
+    filepath = '/Users/pieterm/Dropbox/Private/notes/' + filename
+
+    if not isfile(filepath):
+      print "Note does not exist: do you want to create it? (y/n):"
+    else:
+      call(['vim', filepath])
 
 # Default init
 if __name__ == '__main__':
