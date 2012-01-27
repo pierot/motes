@@ -5,6 +5,7 @@ import sys
 import optparse
 import datetime
 import glob
+import commands
 
 from subprocess import call
 
@@ -65,6 +66,19 @@ class CommandError(Exception):
     return repr('\033[91m' + self.message + '\033[0m')
 
 
+class CommandExec:
+
+  def __init__(self, cmd):
+    [status, output] = commands.getstatusoutput(cmd)
+
+    if status:
+      CommandError(output)
+
+      sys.exit()
+    else:
+      return output
+
+
 class Command(object):
   
   def __init__(self, motes, args):
@@ -100,7 +114,7 @@ class OpenCommand(Command):
           cmd = CreateCommand(self.motes, filename)
           cmd.exe()
       else:
-        returncode = call(['vim', filepath])
+        output = CommandExec('vim ' + filepath)
 
         if returncode == 0:
           CommandLogger('Mote closed.', True)
@@ -114,8 +128,8 @@ class CreateCommand(Command):
 
     CommandLogger("Mote will create " + filename, True)
 
-    call(['touch', filepath])
-    call(['vim', filepath])
+    output = CommandExec('touch ' + filepath)
+    output = CommandExec('vim ' + filepath)
 
 
 class DeleteCommand(Command):
@@ -137,7 +151,7 @@ class DeleteCommand(Command):
       delete_file = yes_no(delete_msg)
     
       if delete_file:
-        call(['rm', filepath])
+        CommandExec('rm ' +  filepath)
 
 
 class FindCommand(Command):
@@ -147,7 +161,7 @@ class FindCommand(Command):
     
     CommandLogger('Motes will search for ' + search, True)
 
-    returncode = call(['ack', '-a', '-i', search, self.motes.home])
+    returncode = CommandExec('ack -a -i ' + search + ' ' + self.motes.home)
 
 
 class ListCommand(Command):
@@ -188,7 +202,7 @@ class MotesInstaller:
       if len(install_motes_path) > 0 and exists(install_motes_path):
         install_motes_path = normpath(install_motes_path + '/Motes')
 
-        if call(['mkdir', '-p', install_motes_path]) == 0:
+        if CommandExec('mkdir -p ' + install_motes_path) == 0:
           self.set_path(install_motes_path)
         else:
           CommandLogger('Motes install directory could not be created. Permissions problem?', True)
@@ -249,11 +263,11 @@ if __name__ == '__main__':
     CommandLogger('Motes home directory: \n', True)
     CommandLogger(mi.path)
   elif options.kitten:
-    call(['open', 'http://placekitten.com/800/600'])
+    CommandExec('open http://placekitten.com/800/600')
   else:
     if len(arguments) < 1:
       CommandLogger("Insufficient arguments given.", True)
 
       sys.exit()
-    
-    m = Motes(mi.path, arguments[0], arguments[1::])
+    else: 
+      m = Motes(mi.path, arguments[0], arguments[1::])
