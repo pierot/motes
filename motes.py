@@ -7,31 +7,8 @@ import glob
 
 from subprocess import call
 
-from os.path import basename
-from os.path import isfile
-from os.path import exists
+from os.path import basename, isfile, exists
 from os import environ
-
-def main():
-  usage = "Usage: %prog [command] [options]"
-  p = optparse.OptionParser(usage, version='%prog version 0.1')
-
-  (options, arguments) = p.parse_args()
-
-  commands = ['create', 'delete', 'find', 'list', 'open']
-
-  if not motes_home():
-    install_motes()
-
-  if len(arguments) < 1:
-    print "Insufficient arguments given."
-
-    sys.exit(0)
-  
-  if arguments[0] in commands:
-    exec_command(arguments[0], arguments[1::])
-  else:
-    print "Invalid command given, use `" + ', '.join(commands) + "`"
 
 def install_motes():
   print "Motes wan't installed yet."
@@ -155,4 +132,22 @@ def yes_no(msg):
 
 # Default init
 if __name__ == '__main__':
-  main()
+  usage = "Usage: %prog [command] [options]"
+  p = optparse.OptionParser(usage, version='%prog version 0.1')
+
+  (options, arguments) = p.parse_args()
+
+  commands = ['create', 'delete', 'find', 'list', 'open']
+
+  if not motes_home():
+    install_motes()
+
+  if len(arguments) < 1:
+    print "Insufficient arguments given."
+
+    sys.exit(0)
+  
+  if arguments[0] in commands:
+    exec_command(arguments[0], arguments[1::])
+  else:
+    print "Invalid command given, use `" + ', '.join(commands) + "`"
