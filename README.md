@@ -3,6 +3,8 @@ Motes
 
 Forget Evernote, use Motes.
 
+[Mote by Sonic Youth](http://youtu.be/-wZNu3v4jh8A)
+
 Usage
 -----
 
