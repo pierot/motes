@@ -1,4 +1,5 @@
 #! /usr/bin/env python
+# -*- coding: utf-8 -*-
 
 import sys
 import optparse
@@ -7,147 +8,252 @@ import glob
 
 from subprocess import call
 
-from os.path import basename, isfile, exists
+from os.path import basename, isfile, exists, normpath
 from os import environ
 
-def install_motes():
-  print "Motes wan't installed yet."
+class Motes:
   
-  install_motes_home = yes_no('Install Motes in your home directory (~/.motes)?')
+  home = ''
+  command = ''
 
-  if install_motes_home:
-    set_motes_home(environ['HOME'] + '/.motes')
-  else:
-    install_motes_path = raw_input("Where do you want Motes to be installed? Please give the full path, no ~. 'Motes' directory will be created: ")
+  def __init__(self, home_path, command, args):
+    self.command = command
+    self.args = args
+    self.home = home_path
+  
+    try:
+      cmd = self.exec_command()
+    except KeyError, e:
+      CommandLogger("Invalid command given, use `" + ', '.join(Motes.commands().keys()) + "`")
 
-    if len(install_motes_path) > 0 and exists(install_motes_path):
-      install_motes_path = install_motes_path + '/Motes'
+      sys.exit()
 
-      if call(['mkdir', '-p', install_motes_path]) == 0:
-        set_motes_home(install_motes_path)
+    if isinstance(cmd, Command):
+      try:
+        cmd.exe()
+      except Exception, e:
+        print e.message
+
+  def exec_command(self):
+    return Motes.commands()[self.command](self, self.args)
+
+  @staticmethod
+  def commands():
+    return {
+      'create': CreateCommand, 
+      'delete': DeleteCommand, 
+      'find': FindCommand,
+      'list': ListCommand, 
+      'open': OpenCommand
+    }
+
+
+class CommandLogger:
+
+  def __init__(self, message, sys=False):
+    prefix = u'ە '.encode('utf-8') if sys else ''
+
+    print '\033[94m' + prefix + message + '\033[0m'
+
+
+class CommandError(Exception):
+  
+  def __init__(self, message):
+    self.message = message
+
+  def __str__(self):
+    return repr('\033[91m' + self.message + '\033[0m')
+
+
+class Command(object):
+  
+  def __init__(self, motes, args):
+    self.args = args
+    self.motes = motes
+
+  def exe(self):
+    raise NotImplementedError('Should have implemented this')
+
+
+class OpenCommand(Command):
+
+  def exe(self):
+    if len(self.args) == 0:
+      raise CommandError('No mote name given.')
+    else:
+      filename = self.args[0]
+      filenr = int(filename) if filename.isdigit() else -1
+     
+      if filenr > -1:
+        files = glob.glob(self.motes.home + '*')
+
+        filepath = files[filenr] if len(files) > filenr else ""
+        filename = basename(filepath)
       else:
-        print 'Motes install directory could not be created. Permissions problem?'
+        filepath = self.motes.home + filename
+
+      if not isfile(filepath):
+        make_msg = "Mote does not exist: do you want to create it?"
+        make_file = yes_no(make_msg)
+        
+        if make_file:
+          cmd = CreateCommand(self.motes, filename)
+          cmd.exe()
+      else:
+        returncode = call(['vim', filepath])
+
+        if returncode == 0:
+          CommandLogger('Mote closed.', True)
+
+
+class CreateCommand(Command):
+
+  def exe(self):
+    filename = self.args[0] if type(self.args) == list else self.args
+    filepath = self.motes.home + filename
+
+    CommandLogger("Mote will create " + filename, True)
+
+    call(['touch', filepath])
+    call(['vim', filepath])
+
+
+class DeleteCommand(Command):
+
+  def exe(self):
+    filename = self.args[0] if type(self.args) == list else self.args
+    filenr = int(filename) if filename.isdigit() else -1
+   
+    if filenr > -1:
+      files = glob.glob(self.motes.home + '*')
+
+      filepath = files[filenr] if len(files) > filenr else ""
+      filename = basename(filepath)
+    else:
+      filepath = self.motes.home + filename
+
+    if isfile(filepath):
+      delete_msg = 'Are you sure you want to delete ' + filename + '?'
+      delete_file = yes_no(delete_msg)
+    
+      if delete_file:
+        call(['rm', filepath])
+
+
+class FindCommand(Command):
+
+  def exe(self):
+    search = self.args[0] if type(self.args) == list else self.args
+    
+    CommandLogger('Motes will search for ' + search, True)
+
+    returncode = call(['ack', '-a', '-i', search, self.motes.home])
+
+
+class ListCommand(Command):
+
+  def exe(self):
+    files = glob.glob(self.motes.home + '*')
+   
+    if len(files) > 0:
+      CommandLogger("All motes\n", True)
+
+    for idx, file in enumerate(files):
+      CommandLogger("[" + str(idx) + "]\t" + basename(file))
+
+
+class MotesInstaller:
+
+  default_path = '.motes'
+  config_path = '.motes'
+
+  path = ''
+
+  def __init__(self):
+    self.path = self.find_path()
+
+  def installed(self):
+    return self.path
+
+  def install(self):
+    CommandLogger("Motes wasn't installed yet.", True)
+    
+    do_install = yes_no('Install Motes in your home directory (~/.motes)?')
+
+    if do_install:
+      self.set_path(environ['HOME'] + '/' + self.default_path)
+    else:
+      install_motes_path = raw_input("Where do you want Motes to be installed? Please give the full path, no ~. 'Motes' directory will be created: ")
+
+      if len(install_motes_path) > 0 and exists(install_motes_path):
+        install_motes_path = normpath(install_motes_path + '/Motes')
+
+        if call(['mkdir', '-p', install_motes_path]) == 0:
+          self.set_path(install_motes_path)
+        else:
+          CommandLogger('Motes install directory could not be created. Permissions problem?', True)
+
+          sys.exit(0)
+      else:
+        CommandLogger('Given path did not exists.', True)
 
         sys.exit(0)
-    else:
-      print 'Given path did not exists.'
 
-      sys.exit(0)
+  def find_path(self):
+    try:
+      path_f = open('./' + self.config_path, 'r')
+      target = path_f.read()
 
-def motes_home():
-  try:
-    path_f = open('./.motes', 'r')
-    target = path_f.read()
-    path_f.close()
-
-    return target + '/'
-  except IOError:
-    return False
-
-def set_motes_home(target):
-  try:
-    path_f = open('./.motes', 'w')
-    path_f.writelines(target)
-    path_f.close()
-  except IOError:
-    print 'Error installing motes.'
-
-def exec_command(command, args):
-  return {
-    'create': exec_create, 
-    'delete': exec_delete, 
-    'find': exec_find,
-    'list': exec_list, 
-    'open': exec_open
-  }[command](args)
-
-def exec_create(args):
-  filename = args[0] if type(args) == list else args
-  filepath = motes_home() + filename
-
-  print "Mote will create " + filename
-
-  call(['touch', filepath])
-
-  call(['vim', filepath])
-
-def exec_delete(args):
-  filename = args[0] if type(args) == list else args
-  filenr = int(filename) if filename.isdigit() else -1
- 
-  if filenr > -1:
-    files = glob.glob(motes_home() + '*')
-
-    filepath = files[filenr] if len(files) > filenr else ""
-    filename = basename(filepath)
-  else:
-    filepath = motes_home() + filename
-
-  if isfile(filepath):
-    delete_msg = 'Are you sure you want to delete ' + filename + '?'
-    delete_file = yes_no(delete_msg)
-  
-    if delete_file:
-      call(['rm', filepath])
-
-def exec_find(args):
-  search = args[0] if type(args) == list else args
-  
-  print 'Motes will search for ' + search
-
-  returncode = call(['ack', '-a', '-i', search, motes_home()])
-
-def exec_list(args):
-  files = glob.glob(motes_home() + '*')
- 
-  if len(files) > 0:
-    print "All motes\n"
-
-  for idx, file in enumerate(files):
-    print "[" + str(idx) + "]\t" + basename(file)
-
-def exec_open(args):
-  if len(args) == 0:
-    print "No note name given."
-
-    sys.exit(0)
-  else:
-    filename = args[0]
-    filepath = motes_home() + filename
-
-    if not isfile(filepath):
-      make_msg = "Note does not exist: do you want to create it?"
-      make_file = yes_no(make_msg)
+      path_f.close()
       
-      if make_file:
-        exec_create(filename)
-    else:
-      returncode = call(['vim', filepath])
+      if exists(target):
+        return target + '/'
+      else:
+        return False
+    except IOError:
+      return False
 
-      if returncode == 0:
-        print 'Mote note closed.'
+  def set_path(self, target):
+    try:
+      path_f = open('./' + self.config_path, 'w')
+      path_f.writelines(target)
+      path_f.close()
 
+      self.path = target
+    except IOError:
+      CommandLogger('Error installing Motes.', True)
+
+##
+# Helper functions
+#
 def yes_no(msg):
   return True if raw_input("%s (y/n) " % msg).lower() == 'y' else False
 
+##
 # Default init
+#
 if __name__ == '__main__':
-  usage = "Usage: %prog [command] [options]"
-  p = optparse.OptionParser(usage, version='%prog version 0.1')
+  parser = optparse.OptionParser(usage='Usage: %prog [command] [options]', prog='Motes', version='%prog version 0.1')
 
-  (options, arguments) = p.parse_args()
+  parser.add_option('-p', '--path', action="store_true", help='prints motes folder path')
+  parser.add_option('-k', '--kitten', action="store_true", help='show me a kitten')
 
-  commands = ['create', 'delete', 'find', 'list', 'open']
+  (options, arguments) = parser.parse_args()
 
-  if not motes_home():
-    install_motes()
+  mi = MotesInstaller()
 
-  if len(arguments) < 1:
-    print "Insufficient arguments given."
+  if not mi.installed():
+    mi.install()
 
-    sys.exit(0)
-  
-  if arguments[0] in commands:
-    exec_command(arguments[0], arguments[1::])
+  if options.path:
+    CommandLogger('Motes home directory: \n', True)
+    CommandLogger(mi.path)
+  elif options.kitten:
+    call(['open', 'http://placekitten.com/800/600'])
   else:
-    print "Invalid command given, use `" + ', '.join(commands) + "`"
+    if len(arguments) < 1:
+      CommandLogger("Insufficient arguments given.", True)
+
+      sys.exit()
+    
+    m = Motes(mi.path, arguments[0], arguments[1::])
