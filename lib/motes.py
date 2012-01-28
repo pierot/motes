@@ -2,7 +2,7 @@
 
 import sys
 import glob
-import commands
+import subprocess
 
 from os.path import basename, isfile, exists, normpath
 from os import environ
@@ -85,10 +85,10 @@ class CommandExec:
     self.cmd = cmd
 
   def exe(self):
-    [status, output] = commands.getstatusoutput(self.cmd)
-
-    if status:
-      raise CommandError(output)
+    output = subprocess.call(self.cmd)
+    
+    if not output == 0:
+      raise CommandError('Command execution error with cmd: ' + str(output))
 
       sys.exit()
     else:
@@ -136,7 +136,7 @@ class OpenCommand(Command):
           cmd = CreateCommand(self.motes, filename)
           cmd.exe()
       else:
-        output = CommandExec('vim ' + filepath).exe()
+        output = CommandExec(['vim', filepath]).exe()
 
         if output == 0:
           CommandLogger('Mote closed.', True)
@@ -153,8 +153,8 @@ class CreateCommand(Command):
 
     CommandLogger('Motes will create a new mote name `' + filename + '`', True)
 
-    CommandExec('touch ' + filepath).exe()
-    CommandExec('vim ' + filepath).exe()
+    CommandExec(['touch', filepath]).exe()
+    CommandExec(['vim', filepath]).exe()
 
 
 """
@@ -179,7 +179,7 @@ class DeleteCommand(Command):
       delete_file = yes_no(delete_msg)
     
       if delete_file:
-        CommandExec('rm ' +  filepath).exe()
+        CommandExec(['rm', filepath]).exe()
 
 
 """
@@ -192,7 +192,7 @@ class FindCommand(Command):
     
     CommandLogger('Motes will search for `' + search + '` in your motes', True)
 
-    CommandExec('ack -a -i ' + search + ' ' + self.motes.home).exe()
+    CommandExec(['ack', '-a', '-i', search + ' ' + self.motes.home]).exe()
 
 
 """
@@ -241,7 +241,7 @@ class MotesInstaller:
       if len(install_motes_path) > 0 and exists(install_motes_path):
         install_motes_path = normpath(install_motes_path + '/Motes')
 
-        if len(CommandExec('mkdir -p ' + install_motes_path).exe()) == 0:
+        if CommandExec(['mkdir', '-p', install_motes_path]).exe() == 0:
           self.set_path(install_motes_path)
         else:
           print CommandError('Motes install directory could not be created. Permissions problem?', True)
