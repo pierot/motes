@@ -8,16 +8,16 @@ import os
 from os.path import basename, isfile, exists, normpath
 from os import environ, path
 
-##
-# Import lib
-#
+""""
+Import lib
+""""
 sys.path.append(sys.path[0] + '/..')
 
 from lib.motes import MotesInstaller, Motes, CommandLogger, CommandExec
 
-##
-# Default init
-#
+"""
+Default init
+""""
 if __name__ == '__main__':
   usage = 'Usage: %prog [command] [options]'
 

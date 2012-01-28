@@ -3,15 +3,18 @@
 import sys
 import glob
 import commands
-import os, inspect
-
-from subprocess import call
 
 from os.path import basename, isfile, exists, normpath
-from os import environ, path
+from os import environ
+
+"""
+Motes class. Needs to know where the Motes are located,
+a command and maybe some arguments
+"""
+
 
 class Motes:
-  
+
   home = ''
   command = ''
 
@@ -23,7 +26,8 @@ class Motes:
     try:
       cmd = self.exec_command()
     except KeyError, e:
-      CommandLogger("Invalid command given, use `" + ', '.join(Motes.commands().keys()) + "`")
+      CommandLogger('Invalid command given')
+      CommandLogger(', use `' + ', '.join(Motes.commands().keys()) + "`")
 
       sys.exit()
 
@@ -47,6 +51,9 @@ class Motes:
     }
 
 
+"""
+Central logger class
+"""
 class CommandLogger:
 
   def __init__(self, message, sys=False):
@@ -55,6 +62,9 @@ class CommandLogger:
     print '\033[94m' + prefix + message + '\033[0m'
 
 
+"""
+Error class for all Motes errors
+"""
 class CommandError(Exception):
   
   def __init__(self, message):
@@ -64,6 +74,9 @@ class CommandError(Exception):
     return repr('\033[91m' + self.message + '\033[0m')
 
 
+"""
+Execution of system commands
+"""
 class CommandExec:
 
   def __init__(self, cmd):
@@ -80,6 +93,9 @@ class CommandExec:
       return output
 
 
+"""
+Parent class of all Motes commands
+"""
 class Command(object):
   
   def __init__(self, motes, args):
@@ -90,6 +106,9 @@ class Command(object):
     raise NotImplementedError('Should have implemented this')
 
 
+"""
+Open a Mote
+"""
 class OpenCommand(Command):
 
   def exe(self):
@@ -117,10 +136,13 @@ class OpenCommand(Command):
       else:
         output = CommandExec('vim ' + filepath).exe()
 
-        if returncode == 0:
+        if output == 0:
           CommandLogger('Mote closed.', True)
 
 
+"""
+Creates a Mote
+"""
 class CreateCommand(Command):
 
   def exe(self):
@@ -129,10 +151,13 @@ class CreateCommand(Command):
 
     CommandLogger("Mote will create " + filename, True)
 
-    output = CommandExec('touch ' + filepath).exe()
-    output = CommandExec('vim ' + filepath).exe()
+    CommandExec('touch ' + filepath).exe()
+    CommandExec('vim ' + filepath).exe()
 
 
+"""
+Deletes a Mote
+"""
 class DeleteCommand(Command):
 
   def exe(self):
@@ -155,6 +180,9 @@ class DeleteCommand(Command):
         CommandExec('rm ' +  filepath).exe()
 
 
+"""
+Finds (a) Mote(s) based on a string. Can be a regular expression as well
+"""
 class FindCommand(Command):
 
   def exe(self):
@@ -162,9 +190,12 @@ class FindCommand(Command):
     
     CommandLogger('Motes will search for ' + search, True)
 
-    returncode = CommandExec('ack -a -i ' + search + ' ' + self.motes.home).exe()
+    CommandExec('ack -a -i ' + search + ' ' + self.motes.home).exe()
 
 
+"""
+List all Motes
+"""
 class ListCommand(Command):
 
   def exe(self):
@@ -177,6 +208,9 @@ class ListCommand(Command):
       CommandLogger("[" + str(idx) + "]\t" + basename(file))
 
 
+"""
+Install Motes and get installation directory
+"""
 class MotesInstaller:
 
   default_path = '.motes'
@@ -244,9 +278,9 @@ class MotesInstaller:
     except IOError:
       CommandLogger('Error installing Motes.', True)
 
-##
-# Helper functions
-#
+"""
+Helper functions
+"""
 def yes_no(msg):
   return True if raw_input("%s (y/n) " % msg).lower() == 'y' else False
 
