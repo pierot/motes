@@ -23,8 +23,8 @@ if __name__ == '__main__':
 
   parser = optparse.OptionParser(usage, prog='Motes', version='%prog version 0.1')
 
-  parser.add_option('-p', '--path', action="store_true", help='prints motes folder path')
-  parser.add_option('-k', '--kitten', action="store_true", help='show me a kitten')
+  parser.add_option('-p', '--path', action='store_true', help='prints motes folder path')
+  parser.add_option('-k', '--kitten', action='store_true', help='show me a kitten')
 
   (options, arguments) = parser.parse_args()
 
@@ -43,7 +43,7 @@ if __name__ == '__main__':
 
     else:
       if len(arguments) < 1:
-        CommandLogger("Insufficient arguments given.", True)
+        CommandLogger('Insufficient arguments given.', True)
 
         sys.exit()
 
