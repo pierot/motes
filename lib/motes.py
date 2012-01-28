@@ -27,7 +27,7 @@ class Motes:
       cmd = self.exec_command()
     except KeyError, e:
       CommandLogger('Invalid command given')
-      CommandLogger(', use `' + ', '.join(Motes.commands().keys()) + "`")
+      CommandLogger(', use `' + ', '.join(Motes.commands().keys()) + '`')
 
       sys.exit()
 
@@ -123,13 +123,13 @@ class OpenCommand(Command):
       if filenr > -1:
         files = glob.glob(self.motes.home + '*')
 
-        filepath = files[filenr] if len(files) > filenr else ""
+        filepath = files[filenr] if len(files) > filenr else ''
         filename = basename(filepath)
       else:
         filepath = self.motes.home + filename
 
       if not isfile(filepath):
-        make_msg = "Mote does not exist: do you want to create it?"
+        make_msg = 'Mote does not exist: do you want to create it?'
         make_file = yes_no(make_msg)
         
         if make_file:
@@ -151,7 +151,7 @@ class CreateCommand(Command):
     filename = self.args[0] if type(self.args) == list else self.args
     filepath = self.motes.home + filename
 
-    CommandLogger("Mote will create " + filename, True)
+    CommandLogger('Motes will create a new mote name `' + filename + '`', True)
 
     CommandExec('touch ' + filepath).exe()
     CommandExec('vim ' + filepath).exe()
@@ -169,13 +169,13 @@ class DeleteCommand(Command):
     if filenr > -1:
       files = glob.glob(self.motes.home + '*')
 
-      filepath = files[filenr] if len(files) > filenr else ""
+      filepath = files[filenr] if len(files) > filenr else ''
       filename = basename(filepath)
     else:
       filepath = self.motes.home + filename
 
     if isfile(filepath):
-      delete_msg = 'Are you sure you want to delete ' + filename + '?'
+      delete_msg = 'Are you sure you want to delete the mote named `' + filename + '`?'
       delete_file = yes_no(delete_msg)
     
       if delete_file:
@@ -190,7 +190,7 @@ class FindCommand(Command):
   def exe(self):
     search = self.args[0] if type(self.args) == list else self.args
     
-    CommandLogger('Motes will search for ' + search, True)
+    CommandLogger('Motes will search for `' + search + '` in your motes', True)
 
     CommandExec('ack -a -i ' + search + ' ' + self.motes.home).exe()
 
@@ -204,10 +204,10 @@ class ListCommand(Command):
     files = glob.glob(self.motes.home + '*')
    
     if len(files) > 0:
-      CommandLogger("All motes\n", True)
+      CommandLogger('All motes\n', True)
 
     for idx, file in enumerate(files):
-      CommandLogger("[" + str(idx) + "]\t" + basename(file))
+      CommandLogger('[' + str(idx) + ']\t' + basename(file))
 
 
 """
@@ -229,14 +229,14 @@ class MotesInstaller:
     return self.path
 
   def install(self):
-    CommandLogger("Motes wasn't installed yet.", True)
+    CommandLogger('Motes wasn\'t installed yet.', True)
     
     do_install = yes_no_quit('Install Motes in your home directory (~/.motes)?')
 
     if do_install:
       self.set_path(environ['HOME'] + '/' + self.default_path)
     else:
-      install_motes_path = raw_input("Where do you want Motes to be installed? Please give the full path, no ~. 'Motes' directory will be created: ")
+      install_motes_path = raw_input('Where do you want Motes to be installed? Please give the full path, no ~. \'Motes\' directory will be created: ')
 
       if len(install_motes_path) > 0 and exists(install_motes_path):
         install_motes_path = normpath(install_motes_path + '/Motes')
@@ -271,7 +271,6 @@ class MotesInstaller:
 
   def set_path(self, target):
     try:
-      print self.config_path()
       path_f = open(self.config_path(), 'w')
       path_f.writelines(target)
       path_f.close()
@@ -284,12 +283,12 @@ class MotesInstaller:
 Helper functions
 """
 def yes_no(msg):
-  return True if raw_input("%s (y/n) " % msg).lower() == 'y' else False
+  return True if raw_input('%s (y/n) ' % msg).lower() == 'y' else False
 
 def yes_no_quit(msg):
-  output = raw_input("%s (y/n/q) " % msg).lower()
+  output = raw_input('%s (y/n/q) ' % msg).lower()
  
-  if output == "q":
+  if output == 'q':
     sys.exit()
 
   return True if output == 'y' else False
