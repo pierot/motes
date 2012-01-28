@@ -8,16 +8,16 @@ import os
 from os.path import basename, isfile, exists, normpath
 from os import environ, path
 
-""""
+"""
 Import lib
-""""
+"""
 sys.path.append(sys.path[0] + '/..')
 
 from lib.motes import MotesInstaller, Motes, CommandLogger, CommandExec
 
 """
 Default init
-""""
+"""
 if __name__ == '__main__':
   usage = 'Usage: %prog [command] [options]'
 
@@ -28,23 +28,28 @@ if __name__ == '__main__':
 
   (options, arguments) = parser.parse_args()
 
-  mi = MotesInstaller(path.abspath(path.dirname(__file__)))
+  try:
+    mi = MotesInstaller(path.abspath(path.dirname(__file__)))
 
-  if not mi.installed():
-    mi.install()
+    if not mi.installed():
+      mi.install()
 
-  if options.path:
-    CommandLogger('Motes home directory: \n', True)
-    CommandLogger(mi.path)
+    if options.path:
+      CommandLogger('Motes home directory: \n', True)
+      CommandLogger(mi.path)
 
-  elif options.kitten:
-    CommandExec('open http://placekitten.com/800/600').exe()
+    elif options.kitten:
+      CommandExec('open http://placekitten.com/800/600').exe()
 
-  else:
-    if len(arguments) < 1:
-      CommandLogger("Insufficient arguments given.", True)
+    else:
+      if len(arguments) < 1:
+        CommandLogger("Insufficient arguments given.", True)
 
-      sys.exit()
+        sys.exit()
 
-    else: 
-      m = Motes(mi.path, arguments[0], arguments[1::])
+      else: 
+        m = Motes(mi.path, arguments[0], arguments[1::])
+  except KeyboardInterrupt:
+    print ""
+
+    pass
