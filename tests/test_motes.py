@@ -48,7 +48,7 @@ class TestMotes:
     assert isinstance(m.exec_command(), Command) == True
 
 
-class TestMotesCommands:
+class TestMotesListCommand:
   def setUp(self):
     self.c = Capture()
     self.c.begin()
@@ -70,16 +70,42 @@ class TestMotesCommands:
 
     assert self.c.buffer == title + content
 
+
+"""
+def setup_ask_value_fixtures(testcase):
+    testcase.mock_tracker = minimock.TraceTracker()
+  
+    testcase.test_response = str(object())
+  
+    minimock.mock(
+        "__builtin__.raw_input",
+        returns=testcase.test_response,
+        tracker=testcase.mock_tracker)
+    minimock.mock(
+        "sys.stderr",
+        tracker=testcase.mock_tracker)
+"""
+
+"""
+class TestMotesOpenNonExistence:
+  def setUp(self):
+    setup_ask_value_fixtures(self)
+
+  def tearDown(self):
+    minimock.restore()
+
   def test_motes_open_non_exist(self):
-    m = Motes(motes_dir, 'open', 'something')
-    
-    self.cap_end()
+    #self.cap_end()
+    #print self.c.buffer
 
     # http://nullege.com/codes/show/src@burn-0.4.6@test@test_console.py
 
-    print self.c.buffer
+    expect_response = self.test_response
 
+    m = Motes(motes_dir, 'open', 'something')
 
+    assert_equal(expect_response, response)
+"""
 
 """
 Exec self
