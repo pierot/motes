@@ -7,6 +7,8 @@ test_motes.py
 Created by Pieter Michels
 """
 
+from os import path
+
 from motes import * 
 from nose.tools import *
 from nose.plugins.capture import Capture
@@ -17,14 +19,16 @@ from StringIO import StringIO
 Tests
 """
 
-motes_dir = './Motes/'
-    
-class TestMotes:
-  #def setUp(self):
-    #self.held, sys.stdout = sys.stdout, StringIO()
+cwd = path.abspath(path.dirname(__file__))
+motes_dir = cwd + '/Motes/'
 
-  #def tearDown(self):
-    #sys.stdout = self.held
+class TestMotes:
+  def setUp(self):
+    self.c = Capture()
+    self.c.begin()
+
+  def tearDown(self):
+    self.c.end()
 
   def test_motes_instance(self):
     m = Motes(motes_dir, 'list', '')
@@ -43,10 +47,15 @@ class TestMotes:
 
     assert isinstance(m.exec_command(), Command) == True
 
+
 class TestMotesCommands:
   def setUp(self):
     self.c = Capture()
     self.c.begin()
+
+    self.c_begin = "\033[94m"
+    self.c_end = "\033[0m\n"
+    self.prefix = u'ە '.encode('utf-8')
 
   def cap_end(self):
     self.c.end()
@@ -54,11 +63,22 @@ class TestMotesCommands:
   def test_motes_list(self):
     m = Motes(motes_dir, 'list', '') 
 
-    print self.c.buffer
-
     self.cap_end()
 
-    print "test" + self.c.buffer
+    title = self.c_begin + self.prefix + "All motes\n" + self.c_end
+    content = self.c_begin + "[0]\ttest" + self.c_end
+
+    assert self.c.buffer == title + content
+
+  def test_motes_open_non_exist(self):
+    m = Motes(motes_dir, 'open', 'something')
+    
+    self.cap_end()
+
+    # http://nullege.com/codes/show/src@burn-0.4.6@test@test_console.py
+
+    print self.c.buffer
+
 
 
 """
