@@ -1,3 +1,50 @@
 #! /usr/bin/env python
+# -*- coding: utf-8 -*-
 
+import optparse
+import sys
+import os
 
+from os.path import basename, isfile, exists, normpath
+from os import environ, path
+
+##
+# Import lib
+#
+sys.path.append(sys.path[0] + '/..')
+
+from lib.motes import MotesInstaller, Motes, CommandLogger, CommandExec
+
+##
+# Default init
+#
+if __name__ == '__main__':
+  usage = 'Usage: %prog [command] [options]'
+
+  parser = optparse.OptionParser(usage, prog='Motes', version='%prog version 0.1')
+
+  parser.add_option('-p', '--path', action="store_true", help='prints motes folder path')
+  parser.add_option('-k', '--kitten', action="store_true", help='show me a kitten')
+
+  (options, arguments) = parser.parse_args()
+
+  mi = MotesInstaller(path.abspath(path.dirname(__file__)))
+
+  if not mi.installed():
+    mi.install()
+
+  if options.path:
+    CommandLogger('Motes home directory: \n', True)
+    CommandLogger(mi.path)
+
+  elif options.kitten:
+    CommandExec('open http://placekitten.com/800/600').exe()
+
+  else:
+    if len(arguments) < 1:
+      CommandLogger("Insufficient arguments given.", True)
+
+      sys.exit()
+
+    else: 
+      m = Motes(mi.path, arguments[0], arguments[1::])

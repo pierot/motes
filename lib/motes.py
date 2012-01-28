@@ -1,9 +1,6 @@
-#! /usr/bin/env python
 # -*- coding: utf-8 -*-
 
 import sys
-import optparse
-import datetime
 import glob
 import commands
 import os, inspect
@@ -198,7 +195,7 @@ class MotesInstaller:
   def install(self):
     CommandLogger("Motes wasn't installed yet.", True)
     
-    do_install = yes_no('Install Motes in your home directory (~/.motes)?')
+    do_install = yes_no_quit('Install Motes in your home directory (~/.motes)?')
 
     if do_install:
       self.set_path(environ['HOME'] + '/' + self.default_path)
@@ -253,31 +250,10 @@ class MotesInstaller:
 def yes_no(msg):
   return True if raw_input("%s (y/n) " % msg).lower() == 'y' else False
 
-##
-# Default init
-#
-if __name__ == '__main__':
-  parser = optparse.OptionParser(usage='Usage: %prog [command] [options]', prog='Motes', version='%prog version 0.1')
+def yes_no_quit(msg):
+  output = raw_input("%s (y/n/q) " % msg).lower()
+ 
+  if output == "q":
+    sys.exit()
 
-  parser.add_option('-p', '--path', action="store_true", help='prints motes folder path')
-  parser.add_option('-k', '--kitten', action="store_true", help='show me a kitten')
-
-  (options, arguments) = parser.parse_args()
-
-  mi = MotesInstaller(path.abspath(path.dirname(__file__)))
-
-  if not mi.installed():
-    mi.install()
-
-  if options.path:
-    CommandLogger('Motes home directory: \n', True)
-    CommandLogger(mi.path)
-  elif options.kitten:
-    CommandExec('open http://placekitten.com/800/600').exe()
-  else:
-    if len(arguments) < 1:
-      CommandLogger("Insufficient arguments given.", True)
-
-      sys.exit()
-    else: 
-      m = Motes(mi.path, arguments[0], arguments[1::])
+  return True if output == 'y' else False
