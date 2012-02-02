@@ -4,6 +4,7 @@
 import optparse
 import sys
 import os
+import pbs
 
 from os.path import basename, isfile, exists, normpath
 from os import environ, path
@@ -13,7 +14,7 @@ Import lib
 """
 sys.path.append(sys.path[0] + '/..')
 
-from lib.motes import MotesInstaller, Motes, CommandLogger, CommandExec
+from lib.motes import MotesInstaller, Motes, CommandLogger
 
 """
 Default init
@@ -39,7 +40,8 @@ if __name__ == '__main__':
       CommandLogger(mi.path)
 
     elif options.kitten:
-      CommandExec('open http://placekitten.com/800/600').exe()
+      #CommandExec('open http://placekitten.com/800/600').exe()
+      pbs.open('http://placekitten.com/800/600')
 
     else:
       if len(arguments) < 1:

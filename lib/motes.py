@@ -2,7 +2,7 @@
 
 import sys
 import glob
-import subprocess
+import pbs
 
 from os.path import basename, isfile, exists, normpath
 from os import environ
@@ -11,8 +11,6 @@ from os import environ
 Motes class. Needs to know where the Motes are located,
 a command and maybe some arguments
 """
-
-
 class Motes:
 
   home = ''
@@ -77,25 +75,6 @@ class CommandError(Exception):
 
 
 """
-Execution of system commands
-"""
-class CommandExec:
-
-  def __init__(self, cmd):
-    self.cmd = cmd
-
-  def exe(self):
-    output = subprocess.call(self.cmd)
-    
-    if not output == 0:
-      raise CommandError('Command execution error with cmd: ' + str(output))
-
-      sys.exit()
-    else:
-      return output
-
-
-"""
 Parent class of all Motes commands
 """
 class Command(object):
@@ -136,7 +115,7 @@ class OpenCommand(Command):
           cmd = CreateCommand(self.motes, filename)
           cmd.exe()
       else:
-        output = CommandExec(['vim', filepath]).exe()
+        output = pbs.vim(filepath)
 
         if output == 0:
           CommandLogger('Mote closed.', True)
@@ -153,8 +132,8 @@ class CreateCommand(Command):
 
     CommandLogger('Motes will create a new mote name `' + filename + '`', True)
 
-    CommandExec(['touch', filepath]).exe()
-    CommandExec(['vim', filepath]).exe()
+    pbs.touch(filepath) # create it anyway
+    pbs.vim(filepath)
 
 
 """
@@ -179,7 +158,7 @@ class DeleteCommand(Command):
       delete_file = yes_no(delete_msg)
     
       if delete_file:
-        CommandExec(['rm', filepath]).exe()
+        pbs.rm(filepath)
 
 
 """
@@ -192,7 +171,7 @@ class FindCommand(Command):
     
     CommandLogger('Motes will search for `' + search + '` in your motes', True)
 
-    CommandExec(['ack', '-a', '-i', search + ' ' + self.motes.home]).exe()
+    pbs.ack(search + ' ' + self.motes.home, '-a', '-i')
 
 
 """
@@ -241,7 +220,7 @@ class MotesInstaller:
       if len(install_motes_path) > 0 and exists(install_motes_path):
         install_motes_path = normpath(install_motes_path + '/Motes')
 
-        if CommandExec(['mkdir', '-p', install_motes_path]).exe() == 0:
+        if pbs.mkdir(install_motes_path, '-p') == 0:
           self.set_path(install_motes_path)
         else:
           print CommandError('Motes install directory could not be created. Permissions problem?', True)
