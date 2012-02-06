@@ -9,23 +9,52 @@ import pbs
 from os.path import basename, isfile, exists, normpath
 from os import environ, path
 
+try:
+  import optcomplete
+
+  NoneCompleter = optcomplete.NoneCompleter
+  CmdComplete = optcomplete.CmdComplete
+except ImportError:
+  optcomplete = None
+
 """
 Import lib
 """
 sys.path.append(sys.path[0] + '/..')
 
-from lib.motes import MotesInstaller, Motes, CommandLogger, CommandError
+from lib.motes import MotesInstaller, Motes, CommandLogger, CommandError, ListCommand
 
 """
 Require minimum Python version
 """
-if sys.version_info < (2, 9):
+if sys.version_info < (2, 7):
   CommandError('Wrong Python Version!\n  >= 2.7 is required.').exe()
 
+
 """
-Default init
+Auotcomplete motes files
 """
-if __name__ == '__main__':
+class FilesCompleter:
+  
+  def __init__(self, motes_path):
+    self.path = motes_path
+
+  def __call__(self, pwd, line, point, prefix, suffix):
+    lc = ListCommand(self.path, False)
+    files = lc.files()
+
+    files_list = []
+
+    for idx, file in enumerate(files):
+      files_list.append(file)
+
+    return files_list
+
+
+"""
+Main routine
+"""
+def main():
   usage = 'Usage: %prog [command] [options]'
 
   parser = optparse.OptionParser(usage, prog='Motes', version='%prog version 0.1')
@@ -33,13 +62,24 @@ if __name__ == '__main__':
   parser.add_option('-p', '--path', action='store_true', help='prints motes folder path')
   parser.add_option('-k', '--kitten', action='store_true', help='show me a kitten')
 
-  (options, arguments) = parser.parse_args()
-
   try:
     mi = MotesInstaller(path.abspath(path.dirname(__file__)))
 
     if not mi.installed():
       mi.install()
+
+    if optcomplete:
+      cmd_map = {}
+
+      for n in Motes.commands():
+        cmd_map[n] = Motes.commands()[n]
+      
+      cmd_lister = optcomplete.ListCompleter(cmd_map.keys())
+      fc = FilesCompleter(mi.path)
+
+      optcomplete.autocomplete(parser, cmd_lister, NoneCompleter(), fc, subcommands=cmd_map)
+
+    (options, arguments) = parser.parse_args()
 
     if options.path:
       CommandLogger('Motes home directory: \n', True)
@@ -57,6 +97,12 @@ if __name__ == '__main__':
       else: 
         m = Motes(mi.path, arguments[0], arguments[1::])
   except KeyboardInterrupt:
-    print ""
+    CommandLogger('Motes quit', True)
 
     pass
+
+"""
+Default init
+"""
+if __name__ == '__main__':
+  main()

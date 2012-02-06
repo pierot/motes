@@ -85,9 +85,9 @@ Parent class of all Motes commands
 """
 class Command(object):
   
-  def __init__(self, motes, args):
+  def __init__(self, motes_path, args):
     self.args = args
-    self.motes = motes
+    self.motes_path = motes_path
 
   def exe(self):
     raise NotImplementedError('Should have implemented this')
@@ -106,19 +106,19 @@ class OpenCommand(Command):
       filenr = int(filename) if filename.isdigit() else -1
      
       if filenr > -1:
-        files = glob.glob(self.motes.home + '*')
+        files = glob.glob(self.motes_path + '*')
 
         filepath = files[filenr] if len(files) > filenr else ''
         filename = basename(filepath)
       else:
-        filepath = self.motes.home + filename
+        filepath = self.motes_path + filename
 
       if not isfile(filepath):
         make_msg = 'Mote does not exist: do you want to create it?'
         make_file = yes_no(make_msg)
         
         if make_file:
-          cmd = CreateCommand(self.motes, filename)
+          cmd = CreateCommand(self.motes_path, filename)
           cmd.exe()
       else:
         output = pbs.vim(filepath, _fg=True)
@@ -134,7 +134,7 @@ class CreateCommand(Command):
 
   def exe(self):
     filename = self.args[0] if type(self.args) == list else self.args
-    filepath = self.motes.home + filename
+    filepath = self.motes_path + filename
 
     CommandLogger('Motes will create a new mote name `' + filename + '`', True)
 
@@ -152,12 +152,12 @@ class DeleteCommand(Command):
     filenr = int(filename) if filename.isdigit() else -1
    
     if filenr > -1:
-      files = glob.glob(self.motes.home + '*')
+      files = glob.glob(self.motes_path + '*')
 
       filepath = files[filenr] if len(files) > filenr else ''
       filename = basename(filepath)
     else:
-      filepath = self.motes.home + filename
+      filepath = self.motes_path + filename
 
     if isfile(filepath):
       delete_msg = 'Are you sure you want to delete the mote named `' + filename + '`?'
@@ -177,7 +177,7 @@ class FindCommand(Command):
     
     CommandLogger('Motes will search for `' + search + '` in your motes', True)
 
-    pbs.ack(search + ' ' + self.motes.home, '-a', '-i')
+    pbs.ack(search + ' ' + self.motes_path, '-a', '-i')
 
 
 """
@@ -186,13 +186,22 @@ List all Motes
 class ListCommand(Command):
 
   def exe(self):
-    files = glob.glob(self.motes.home + '*')
+    files = self.files()
    
     if len(files) > 0:
       CommandLogger('All motes\n', True)
 
     for idx, file in enumerate(files):
-      CommandLogger('[' + str(idx) + ']\t' + basename(file))
+      CommandLogger('[' + str(idx) + ']\t' + file)
+
+  def files(self):
+    raw_files = glob.glob(self.motes_path + '*')
+    files = []
+
+    for idx, file in enumerate(raw_files):
+      files.append(basename(file))
+
+    return files
 
 
 """
