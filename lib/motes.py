@@ -46,7 +46,8 @@ class Motes:
       'delete': DeleteCommand, 
       'find': FindCommand,
       'list': ListCommand, 
-      'open': OpenCommand
+      'open': OpenCommand,
+      'reveal': RevealCommand
     }
 
 
@@ -189,6 +190,17 @@ class ListCommand(Command):
     for idx, file in enumerate(files):
       CommandLogger('[' + str(idx) + ']\t' + basename(file))
 
+"""
+Reveal the motes folder in Finder
+"""
+class RevealCommand(Command):
+
+  def exe(self):
+    self.motes.home
+
+    pbs.open(self.motes.home)
+
+    CommandLogger('All your motes are belong to Finder\n', True)
 
 """
 Install Motes and get installation directory
