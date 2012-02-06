@@ -3,7 +3,7 @@ TODOS
 
 * Homebrew installation
 * https://github.com/kennethreitz/clint
-* python 2.7.x minimum?
+* (X) python 2.7.x minimum?
 * autocomplete when not giving mote name with command 'open' (http://bash-completion.alioth.debian.org/)
 * (X) https://github.com/amoffat/pbs
 * DocumentUp (http://documentup.com/#section-5-3)
