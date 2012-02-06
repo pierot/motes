@@ -3,6 +3,7 @@
 import sys
 import glob
 import pbs
+import subprocess
 
 from os.path import basename, isfile, exists, normpath
 from os import environ
@@ -115,7 +116,7 @@ class OpenCommand(Command):
           cmd = CreateCommand(self.motes, filename)
           cmd.exe()
       else:
-        output = pbs.vim(filepath)
+        output = pbs.vim(filepath, _fg=True)
 
         if output == 0:
           CommandLogger('Mote closed.', True)
@@ -133,7 +134,7 @@ class CreateCommand(Command):
     CommandLogger('Motes will create a new mote name `' + filename + '`', True)
 
     pbs.touch(filepath) # create it anyway
-    pbs.vim(filepath)
+    pbs.vim(filepath, _fg=True)
 
 
 """
