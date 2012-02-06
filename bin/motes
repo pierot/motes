@@ -14,7 +14,13 @@ Import lib
 """
 sys.path.append(sys.path[0] + '/..')
 
-from lib.motes import MotesInstaller, Motes, CommandLogger
+from lib.motes import MotesInstaller, Motes, CommandLogger, CommandError
+
+"""
+Require minimum Python version
+"""
+if sys.version_info < (2, 9):
+  CommandError('Wrong Python Version!\n  >= 2.7 is required.').exe()
 
 """
 Default init
@@ -40,7 +46,6 @@ if __name__ == '__main__':
       CommandLogger(mi.path)
 
     elif options.kitten:
-      #CommandExec('open http://placekitten.com/800/600').exe()
       pbs.open('http://placekitten.com/800/600')
 
     else:

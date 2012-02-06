@@ -34,7 +34,7 @@ class Motes:
       try:
         cmd.exe()
       except Exception, e:
-        raise CommandError(e.message)
+        CommandError(e.message).exe()
 
   def exec_command(self):
     return Motes.commands()[self.command](self, self.args)
@@ -69,6 +69,11 @@ class CommandError(Exception):
   def __init__(self, message):
     self.message = message
 
+  def exe(self, error_code=1):
+    print self
+
+    sys.exit(error_code)
+
   def __str__(self):
     prefix = u'ە '.encode('utf-8')
 
@@ -95,7 +100,7 @@ class OpenCommand(Command):
 
   def exe(self):
     if len(self.args) == 0:
-      raise CommandError('No mote name given.')
+      CommandError('No mote name given.').exe()
     else:
       filename = self.args[0]
       filenr = int(filename) if filename.isdigit() else -1
@@ -224,13 +229,9 @@ class MotesInstaller:
         if pbs.mkdir(install_motes_path, '-p') == 0:
           self.set_path(install_motes_path)
         else:
-          print CommandError('Motes install directory could not be created. Permissions problem?', True)
-
-          sys.exit(0)
+          CommandError('Motes install directory could not be created. Permissions problem?', True).exe()
       else:
-        print CommandError('Given path did not exists.')
-
-        sys.exit(0)
+        CommandError('Given path did not exists.').exe()
 
   def config_path(self):
     return self.cmd_path + self.config_file
@@ -257,7 +258,7 @@ class MotesInstaller:
 
       self.path = target
     except IOError:
-      print CommandError('Error installing Motes.')
+      CommandError('Error installing Motes.').exe()
 
 """
 Helper functions
