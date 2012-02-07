@@ -7,21 +7,23 @@
 
   <title>Motes</title>
 
-  <link rel="stylesheet/less" type="text/css" href="style.less" />
+  <link rel="stylesheet/less" type="text/css" href="{{ url_for('static', filename='style.less') }}" />
 
-  <script src="less.min.js"></script>
-  <script src="jquery.min.js"></script>
-  <script src="coffee-script.js"></script>
+  <script src="{{ url_for('static', filename='less.min.js') }}"></script>
+  <script src="{{ url_for('static', filename='jquery.min.js') }}"></script>
+  <script src="{{ url_for('static', filename='coffee-script.js') }}"></script>
 </head>
 <body>
 
   <div id="top">
     <h1>Motes</h1>
+    <ul></ul>
   </div>
 
   <iframe frameborder="0" scrolling="no" width="100%" id="content"></iframe>
 
   <script type="text/coffeescript">
+
     class Motes
       constructor: (@iframe) ->
         @window_resize()
@@ -32,6 +34,23 @@
         top_height += parseInt($('#top').css('padding-bottom')) + 2.2
 
         $(@iframe).css('height', ($('body').height() - top_height) + 'px')
+
+      get_all_motes: () =>
+        $.ajax({
+          url: "{{ url_for('get_motes') }}",
+          dataType: "json",
+          success: (list) =>
+            for mote in list
+              $('#top ul').append('<li><a href="#' + mote + '">' + mote + '</a></li>')
+        })
+
+      get_mote: (name) =>
+        $.ajax({
+          url: "{{ url_for('get_mote', name='') }}" + name,
+          dataType: "json",
+          success: (data) =>
+            @convert_mote(data.name, data.content)
+        })
 
       show_mote: (html) =>
         doc = $(@iframe)[0].contentWindow.document
@@ -59,9 +78,14 @@
     # Window resize
     $(window).resize (e) =>
       setTimeout(m.window_resize, 0)
+
+    $('#top ul li').delegate 'a', 'click', (e) =>
+      console.log($(this))
+      m.get_mote($(this).html())
     
     # Init
-    m.convert_mote('test', '# Test title')
+    m.get_all_motes()
+    m.get_mote('aap')
 
   </script>
 

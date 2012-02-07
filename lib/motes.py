@@ -121,10 +121,9 @@ Opens Motes site
 class SiteCommand(Command):
   
   def exe(self):
-    CommandLogger('Motes site is opening ..', True).exe()
-
-
-
+    CommandLogger('Motes site is opening ..', True)
+    
+    pbs.open('http://0.0.0.0:5000')
 
 """
 Open a Mote
