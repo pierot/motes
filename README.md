@@ -8,22 +8,28 @@ Forget Evernote, use Motes.
 Usage
 -----
 
-Create note with name
+Create mote with name
 
 `motes create [name]`
 
-Find note, use string or regexp
+Find mote, use string or regexp
 
 `motes find [string]`
 
-Open note with specific name or number
+Open mote with specific name or number
 
 `motes open [name|number]`
 
-List all notes
+List all motes
 
 `motes list`
 
-Opens site with all notes
+Opens site with all motes
+(Feature not added yet)
 
 `motes open`
+
+Show the Motes directory with all motes.
+(thanks to @jeroenbourgois)
+
+`motes reveal`
