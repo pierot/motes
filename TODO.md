@@ -2,7 +2,7 @@ TODOS
 =====
 
 * Homebrew installation
-* Make all motes Markdown
+* (X) Make all motes Markdown
 * (X) python 2.7.x minimum?
 * autocomplete subcommands and motes (http://bash-completion.alioth.debian.org/)
 * (X) https://github.com/amoffat/pbs
