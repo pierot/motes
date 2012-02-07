@@ -9,6 +9,9 @@ import pbs
 from os.path import basename, isfile, exists, normpath
 from os import environ, path
 
+"""
+Import optcomplete
+"""
 try:
   import optcomplete
 
@@ -17,12 +20,14 @@ try:
 except ImportError:
   optcomplete = None
 
+
 """
 Import lib
 """
 sys.path.append(sys.path[0] + '/..')
 
 from lib.motes import MotesInstaller, Motes, CommandLogger, CommandError, ListCommand
+
 
 """
 Require minimum Python version
@@ -52,6 +57,21 @@ class FilesCompleter:
 
 
 """
+Map autocomplete to optionparser
+"""
+def map_autocomplete(parser, file_path):
+  cmd_map = {}
+
+  for n in Motes.commands():
+    cmd_map[n] = Motes.commands()[n]
+  
+  cmd_lister = optcomplete.ListCompleter(cmd_map.keys())
+  fc = FilesCompleter(file_path)
+
+  optcomplete.autocomplete(parser, cmd_lister, NoneCompleter(), fc, subcommands=cmd_map)
+
+
+"""
 Main routine
 """
 def main():
@@ -62,22 +82,14 @@ def main():
   parser.add_option('-p', '--path', action='store_true', help='prints motes folder path')
   parser.add_option('-k', '--kitten', action='store_true', help='show me a kitten')
 
-  try:
-    mi = MotesInstaller(path.abspath(path.dirname(__file__)))
+  mi = MotesInstaller(path.abspath(path.dirname(__file__)))
 
+  try:
     if not mi.installed():
       mi.install()
 
     if optcomplete:
-      cmd_map = {}
-
-      for n in Motes.commands():
-        cmd_map[n] = Motes.commands()[n]
-      
-      cmd_lister = optcomplete.ListCompleter(cmd_map.keys())
-      fc = FilesCompleter(mi.path)
-
-      optcomplete.autocomplete(parser, cmd_lister, NoneCompleter(), fc, subcommands=cmd_map)
+      map_autocomplete(parser, mi.path)
 
     (options, arguments) = parser.parse_args()
 
@@ -90,16 +102,15 @@ def main():
 
     else:
       if len(arguments) < 1:
-        CommandLogger('Insufficient arguments given.', True)
+        CommandError('Insufficient arguments given.').exe()
 
-        sys.exit()
-
-      else: 
+      else: # Launch command
         m = Motes(mi.path, arguments[0], arguments[1::])
   except KeyboardInterrupt:
     CommandLogger('Motes quit', True)
 
     pass
+
 
 """
 Default init
