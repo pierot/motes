@@ -116,13 +116,24 @@ class Command(object):
 
 
 """
+Opens Motes site
+"""
+class SiteCommand(Command):
+  
+  def exe(self):
+    CommandLogger('Motes site is opening ..', True).exe()
+
+
+
+
+"""
 Open a Mote
 """
 class OpenCommand(Command):
 
   def exe(self):
     if len(self.args) == 0:
-      CommandError('No mote name given.').exe()
+      SiteCommand(self.motes.home, None).exe()
     else:
       filename = self.args[0]
       filenr = int(filename) if filename.isdigit() else -1

@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+  <title>Motes</title>
+
+  <link rel="stylesheet/less" type="text/css" href="style.less" />
+
+  <script src="less.min.js"></script>
+  <script src="jquery.min.js"></script>
+  <script src="coffee-script.js"></script>
+</head>
+<body>
+
+  <div id="top">
+    <h1>Motes</h1>
+  </div>
+
+  <iframe frameborder="0" scrolling="no" width="100%" id="content"></iframe>
+
+  <script type="text/coffeescript">
+    class Motes
+      constructor: (@iframe) ->
+        @window_resize()
+
+      window_resize: () ->
+        top_height = $('#top').height()
+        top_height += parseInt($('#top').css('padding-top'))
+        top_height += parseInt($('#top').css('padding-bottom')) + 2.2
+
+        $(@iframe).css('height', ($('body').height() - top_height) + 'px')
+
+      show_mote: (html) =>
+        doc = $(@iframe)[0].contentWindow.document
+
+        doc.open()
+        doc.write(html)
+        doc.close()
+
+      convert_mote: (mote_name, mote_content) =>
+        $.ajax({
+          url: "http://documentup.com/compiled",
+          dataType: "jsonp",
+          data: {
+            content: mote_content,
+            name: mote_name
+          },
+          success: (resp) =>
+            if (resp.status == 200)
+              @show_mote(resp.html)
+        })
+
+    # Start
+    m = new Motes($('#content'))
+    
+    # Window resize
+    $(window).resize (e) =>
+      setTimeout(m.window_resize, 0)
+    
+    # Init
+    m.convert_mote('test', '# Test title')
+
+  </script>
+
+</body>
+</html>
