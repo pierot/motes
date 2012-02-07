@@ -23,7 +23,7 @@ class Motes:
     self.home = home_path
   
     try:
-      cmd = self.exec_command()
+      cmd = self.fetch_command()
     except KeyError, e:
       CommandLogger('Invalid command given')
       CommandLogger(', use `' + ', '.join(Motes.commands().keys()) + '`')
@@ -36,7 +36,7 @@ class Motes:
       except Exception, e:
         CommandError(e.message).exe()
 
-  def exec_command(self):
+  def fetch_command(self):
     return Motes.commands()[self.command](self, self.args)
 
   @staticmethod
