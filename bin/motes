@@ -9,16 +9,12 @@ import pbs
 from os.path import basename, isfile, exists, normpath
 from os import environ, path
 
-"""
-Import optcomplete
-"""
-try:
-  import optcomplete
 
-  NoneCompleter = optcomplete.NoneCompleter
-  CmdComplete = optcomplete.CmdComplete
-except ImportError:
-  optcomplete = None
+"""
+Require minimum Python version
+"""
+if sys.version_info < (2, 7):
+  CommandError('Wrong Python Version!\n  >= 2.7 is required.').exe()
 
 
 """
@@ -28,12 +24,7 @@ sys.path.append(sys.path[0] + '/..')
 
 from lib.motes import MotesInstaller, Motes, CommandLogger, CommandError, ListCommand
 
-
-"""
-Require minimum Python version
-"""
-if sys.version_info < (2, 7):
-  CommandError('Wrong Python Version!\n  >= 2.7 is required.').exe()
+__path__ = path.abspath(path.dirname(__file__))
 
 
 """
@@ -45,6 +36,9 @@ class FilesCompleter:
     self.path = motes_path
 
   def __call__(self, pwd, line, point, prefix, suffix):
+    return self.fetch_list()
+
+  def fetch_list(self):
     lc = ListCommand(self.path, False)
     files = lc.files()
 
@@ -57,18 +51,52 @@ class FilesCompleter:
 
 
 """
+Import optcomplete
+"""
+try:
+  import optcomplete
+
+  NoneCompleter = optcomplete.NoneCompleter
+  CmdComplete = optcomplete.CmdComplete
+
+  """
+  Autocomplete subcommands and files
+  """
+  class CmdList(CmdComplete):
+
+    __doc__ = ''
+
+    names = Motes.commands().keys()
+
+    completer = optcomplete.ListCompleter(FilesCompleter(MotesInstaller(__path__).path).fetch_list())
+
+    def __init__(self):
+      print "CMDList"
+
+    def addopts(self, parser):
+      pass
+
+except ImportError:
+  optcomplete = None
+
+
+"""
 Map autocomplete to optionparser
+
+More info:
+  http://hg.proclos.com/css/file/cbe87dd92ccf/src/css/optcomplete.py
+  http://furius.ca/optcomplete/bin/optcomplete-commands
 """
 def map_autocomplete(parser, file_path):
-  cmd_map = {}
+  subcmds = [CmdList()]
+  scmap = {}
 
-  for n in Motes.commands():
-    cmd_map[n] = Motes.commands()[n]
-  
-  cmd_lister = optcomplete.ListCompleter(cmd_map.keys())
-  fc = FilesCompleter(file_path)
+  for sc in subcmds:
+    for n in sc.names:
+      scmap[n] = sc
 
-  optcomplete.autocomplete(parser, cmd_lister, NoneCompleter(), fc, subcommands=cmd_map)
+  listcter = optcomplete.ListCompleter(scmap.keys())
+  optcomplete.autocomplete(parser, listcter, NoneCompleter(), NoneCompleter(), subcommands=scmap)
 
 
 """
@@ -82,7 +110,7 @@ def main():
   parser.add_option('-p', '--path', action='store_true', help='prints motes folder path')
   parser.add_option('-k', '--kitten', action='store_true', help='show me a kitten')
 
-  mi = MotesInstaller(path.abspath(path.dirname(__file__)))
+  mi = MotesInstaller(__path__)
 
   try:
     if not mi.installed():

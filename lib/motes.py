@@ -37,7 +37,7 @@ class Motes:
         CommandError(e.message).exe()
 
   def exec_command(self):
-    return Motes.commands()[self.command](self, self.args)
+    return Motes.commands()[self.command](self.home, self.args)
 
   @staticmethod
   def commands():
@@ -268,6 +268,7 @@ class MotesInstaller:
       self.path = target
     except IOError:
       CommandError('Error installing Motes.').exe()
+
 
 """
 Helper functions

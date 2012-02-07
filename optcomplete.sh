@@ -6,7 +6,7 @@
 #   complete -F _optcomplete <program>
 #
 
-_optcomplete()
+_optcomplete() 
 {
     COMPREPLY=( $( \
 	COMP_LINE=$COMP_LINE  COMP_POINT=$COMP_POINT \
