@@ -28,6 +28,36 @@ __path__ = path.abspath(path.dirname(__file__))
 
 
 """
+Import optcomplete
+"""
+try:
+  import optcomplete
+
+  NoneCompleter = optcomplete.NoneCompleter
+  CmdComplete = optcomplete.CmdComplete
+
+  """
+  Autocomplete subcommands and files
+  """
+  class CmdList(CmdComplete):
+
+    __doc__ = ''
+
+    names = None
+    completer = None
+
+    def __init__(self, cmd_list, f_list):
+      self.names = cmd_list
+      self.completer = optcomplete.ListCompleter(f_list)
+
+    def addopts(self, parser):
+      pass
+
+except ImportError:
+  optcomplete = None
+
+
+"""
 Auotcomplete motes files
 """
 class FilesCompleter:
@@ -51,36 +81,6 @@ class FilesCompleter:
 
 
 """
-Import optcomplete
-"""
-try:
-  import optcomplete
-
-  NoneCompleter = optcomplete.NoneCompleter
-  CmdComplete = optcomplete.CmdComplete
-
-  """
-  Autocomplete subcommands and files
-  """
-  class CmdList(CmdComplete):
-
-    __doc__ = ''
-
-    names = Motes.commands().keys()
-
-    completer = optcomplete.ListCompleter(FilesCompleter(MotesInstaller(__path__).path).fetch_list())
-
-    def __init__(self):
-      print "CMDList"
-
-    def addopts(self, parser):
-      pass
-
-except ImportError:
-  optcomplete = None
-
-
-"""
 Map autocomplete to optionparser
 
 More info:
@@ -88,7 +88,10 @@ More info:
   http://furius.ca/optcomplete/bin/optcomplete-commands
 """
 def map_autocomplete(parser, file_path):
-  subcmds = [CmdList()]
+  fl = FilesCompleter(file_path).fetch_list()
+  cmdl = CmdList(Motes.commands().keys(), fl)
+
+  subcmds = [cmdl]
   scmap = {}
 
   for sc in subcmds:
