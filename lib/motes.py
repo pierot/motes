@@ -124,12 +124,11 @@ class SiteCommand(Command):
   def exe(self):
     CommandLogger('Motes site is opening ..', True)
 
-    from web.motes import motesite
-    
-    motesite.run(host='0.0.0.0', port=3000)
- 
-    pbs.open('http://0.0.0.0:3000', _fg=True)
+    #pbs.open('http://0.0.0.0:3000', _fg=True)
 
+    from web.motes import motes_web_start
+    
+    motes_web_start()
 
 """
 Open a Mote
@@ -172,17 +171,18 @@ Fetch motes content
 class ContentCommand(Command):
 
   def exe(self):
-    CommandLogger('Contents of `' + self.file_name() + '`.\n', True)    
+    CommandLogger('Contents of `' + self.file_name + '`.\n', True)    
     
-    contents = self.get_content()
+    file_content = self.contents
 
-    if not contents:
+    if not file_content:
       print '# File not found'
     else:
-      print contents
+      print file_content
 
-  def get_content(self):
-    filepath = self.motes_path + self.file_name()
+  @property
+  def contents(self):
+    filepath = self.motes_path + self.file_name
     
     if not path.isfile(filepath):
       output = False
@@ -191,6 +191,7 @@ class ContentCommand(Command):
 
     return output
 
+  @property
   def file_name(self):
     filename = self.args[0] if type(self.args) == list else self.args
 

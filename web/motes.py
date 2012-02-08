@@ -3,25 +3,39 @@
 
 import sys
 import simplejson as json
+import logging
+import os
 
 from os import path
-from flask import Flask, render_template
+from flask import Flask, render_template, Response
 
 """
 Import lib
 """
 sys.path.append(sys.path[0] + '/..')
 
-from lib.motes import ListCommand, MotesInstaller, ContentCommand, PathCleaner
+from lib.motes import ListCommand, MotesInstaller, ContentCommand, PathCleaner, CommandLogger
 
 """
 App
 """
 motesite = Flask(__name__)
+motesite.config.update(DEBUG=False, TESTING=False)
+
 mi = MotesInstaller(path.abspath(path.dirname(__file__)) + '/../bin')
 
 """
-Routes
+Logger
+"""
+@motesite.before_request
+def disable_web_logger():
+  from werkzeug._internal import _logger
+
+  _logger = logging.getLogger('werkzeug')
+  _logger.disabled = True
+
+"""
+Routes + others
 """
 @motesite.route('/')
 def root():
@@ -31,7 +45,7 @@ def root():
 def get_mote(name=None):
   c = ContentCommand(mi.path, name)
 
-  data = {'name': name, 'content': c.get_content()}
+  data = {'name': name, 'content': c.contents}
 
   return Response(json.dumps(data), mimetype='application/json')
 
@@ -50,7 +64,20 @@ def server_error(error):
   return render_template('500.html'), 500
 
 """
+Runner
+"""
+def motes_web_start():
+  os.environ['WERKZEUG_RUN_MAIN'] = 'true'
+
+  try:
+    motesite.run(host='0.0.0.0', port=3000, debug=False, use_debugger=False)
+  except KeyboardInterrupt:
+    CommandLogger('Motes Web quit', True)
+
+    pass
+
+"""
 Main
 """
 if __name__ == '__main__':
-  motesite.run(host='0.0.0.0', port=3000)
+  motes_web_start()
