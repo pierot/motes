@@ -22,7 +22,7 @@ App
 motesite = Flask(__name__)
 motesite.config.update(DEBUG=False, TESTING=False)
 
-mi = MotesInstaller(path.abspath(path.dirname(__file__)) + '/../bin')
+motes_path = ''
 
 """
 Logger
@@ -43,7 +43,7 @@ def root():
 
 @motesite.route('/mote/<name>')
 def get_mote(name=None):
-  c = ContentCommand(mi.path, name)
+  c = ContentCommand(motes_path, name)
 
   data = {'name': name, 'content': c.contents}
 
@@ -51,7 +51,7 @@ def get_mote(name=None):
 
 @motesite.route('/motes')
 def get_motes():
-  lc = ListCommand(mi.path, False)
+  lc = ListCommand(motes_path, False)
   files = []
 
   for file in lc.files():
@@ -66,7 +66,11 @@ def server_error(error):
 """
 Runner
 """
-def motes_web_start():
+def motes_web_start(path):
+  global motes_path
+
+  motes_path = path
+
   os.environ['WERKZEUG_RUN_MAIN'] = 'true'
 
   try:
@@ -80,4 +84,6 @@ def motes_web_start():
 Main
 """
 if __name__ == '__main__':
-  motes_web_start()
+  mi = MotesInstaller(path.abspath(path.dirname(__file__)) + '/../bin')
+
+  motes_web_start(mi.path)

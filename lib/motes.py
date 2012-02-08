@@ -128,7 +128,7 @@ class SiteCommand(Command):
 
     from web.motes import motes_web_start
     
-    motes_web_start()
+    motes_web_start(self.motes_path)
 
 """
 Open a Mote

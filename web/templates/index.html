@@ -20,13 +20,15 @@
     <ul></ul>
   </div>
 
-  <iframe frameborder="0" scrolling="no" width="100%" id="content"></iframe>
+  <iframe frameborder="0" width="100%" id="content"></iframe>
 
   <script type="text/coffeescript">
 
     class Motes
       constructor: (@iframe) ->
-        @window_resize()
+        setInterval =>
+          @window_resize()
+        , 250
 
       window_resize: () ->
         top_height = $('#top').height()
@@ -43,7 +45,7 @@
             for mote in list
               $('#top ul').append('<li><a href="#' + mote + '">' + mote + '</a></li>')
 
-            $('#top ul li a:first-child').click()
+            $('#top ul li:first-child a').click()
         })
 
       get_mote: (name) =>
