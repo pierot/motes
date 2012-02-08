@@ -5,8 +5,8 @@ import glob
 import pbs
 import subprocess
 
-from os import environ, path
-
+from os.path import basename, isfile, exists, normpath
+from os import environ
 
 """
 Motes class. Needs to know where the Motes are located,
@@ -17,15 +17,13 @@ class Motes:
   home = ''
   command = ''
 
-  ext = '.md'
-
   def __init__(self, home_path, command, args):
     self.command = command
     self.args = args
     self.home = home_path
   
     try:
-      cmd = self.fetch_command()
+      cmd = self.exec_command()
     except KeyError, e:
       CommandLogger('Invalid command given')
       CommandLogger(', use `' + ', '.join(Motes.commands().keys()) + '`')
@@ -38,8 +36,8 @@ class Motes:
       except Exception, e:
         CommandError(e.message).exe()
 
-  def fetch_command(self):
-    return Motes.commands()[self.command](self, self.args)
+  def exec_command(self):
+    return Motes.commands()[self.command](self.home, self.args)
 
   @staticmethod
   def commands():
@@ -48,28 +46,8 @@ class Motes:
       'delete': DeleteCommand, 
       'find': FindCommand,
       'list': ListCommand, 
-      'open': OpenCommand,
-      'reveal': RevealCommand
+      'open': OpenCommand
     }
-
-
-"""
-Path filename cleaning class
-"""
-class PathCleaner:
-
-  def __init__(self, filename):
-    self.file_name, self.file_ext = path.splitext(filename)
-    self.file_ext = self.file_ext if len(self.file_ext) > 0 else Motes.ext
-
-  def short(self):
-    return self.file_name
-
-  def long(self):
-    return self.file_name + self.file_ext
-
-  def ext(self):
-    return self.file_ext
 
 
 """
@@ -107,23 +85,13 @@ Parent class of all Motes commands
 """
 class Command(object):
   
-  def __init__(self, motes, args):
+  def __init__(self, motes_path, args):
     self.args = args
-    self.motes = motes
+    self.motes_path = motes_path
 
   def exe(self):
     raise NotImplementedError('Should have implemented this')
 
-
-"""
-Opens Motes site
-"""
-class SiteCommand(Command):
-  
-  def exe(self):
-    CommandLogger('Motes site is opening ..', True)
-    
-    pbs.open('http://0.0.0.0:5000')
 
 """
 Open a Mote
@@ -132,26 +100,25 @@ class OpenCommand(Command):
 
   def exe(self):
     if len(self.args) == 0:
-      SiteCommand(self.motes.home, None).exe()
+      CommandError('No mote name given.').exe()
     else:
       filename = self.args[0]
       filenr = int(filename) if filename.isdigit() else -1
      
       if filenr > -1:
-        files = glob.glob(self.motes.home + '*')
+        files = glob.glob(self.motes_path + '*')
 
         filepath = files[filenr] if len(files) > filenr else ''
-        filename = path.basename(filepath)
+        filename = basename(filepath)
       else:
-        filename = PathCleaner(filename).long()
-        filepath = self.motes.home + filename
+        filepath = self.motes_path + filename
 
-      if not path.isfile(filepath):
+      if not isfile(filepath):
         make_msg = 'Mote does not exist: do you want to create it?'
         make_file = yes_no(make_msg)
         
         if make_file:
-          cmd = CreateCommand(self.motes, filename)
+          cmd = CreateCommand(self.motes_path, filename)
           cmd.exe()
       else:
         output = pbs.vim(filepath, _fg=True)
@@ -167,10 +134,9 @@ class CreateCommand(Command):
 
   def exe(self):
     filename = self.args[0] if type(self.args) == list else self.args
-    filename = PathCleaner(filename).long()
-    filepath = self.motes.home + filename
+    filepath = self.motes_path + filename
 
-    CommandLogger('Motes will create a new mote name `' + PathCleaner(filename).short() + '`', True)
+    CommandLogger('Motes will create a new mote name `' + filename + '`', True)
 
     pbs.touch(filepath) # create it anyway
     pbs.vim(filepath, _fg=True)
@@ -186,16 +152,15 @@ class DeleteCommand(Command):
     filenr = int(filename) if filename.isdigit() else -1
    
     if filenr > -1:
-      files = glob.glob(self.motes.home + '*')
+      files = glob.glob(self.motes_path + '*')
 
       filepath = files[filenr] if len(files) > filenr else ''
-      filename = path.basename(filepath)
+      filename = basename(filepath)
     else:
-      filename = PathCleaner(filename).long()
-      filepath = self.motes.home + filename
+      filepath = self.motes_path + filename
 
-    if path.isfile(filepath):
-      delete_msg = 'Are you sure you want to delete the mote named `' + PathCleaner(filename).short() + '`?'
+    if isfile(filepath):
+      delete_msg = 'Are you sure you want to delete the mote named `' + filename + '`?'
       delete_file = yes_no(delete_msg)
     
       if delete_file:
@@ -212,7 +177,7 @@ class FindCommand(Command):
     
     CommandLogger('Motes will search for `' + search + '` in your motes', True)
 
-    pbs.ack(search + ' ' + self.motes.home, '-a', '-i')
+    pbs.ack(search + ' ' + self.motes_path, '-a', '-i')
 
 
 """
@@ -221,24 +186,22 @@ List all Motes
 class ListCommand(Command):
 
   def exe(self):
-    files = glob.glob(self.motes.home + '*')
+    files = self.files()
    
     if len(files) > 0:
       CommandLogger('All motes\n', True)
 
     for idx, file in enumerate(files):
-      CommandLogger('[' + str(idx) + ']\t' + PathCleaner(path.basename(file)).short())
+      CommandLogger('[' + str(idx) + ']\t' + file)
 
+  def files(self):
+    raw_files = glob.glob(self.motes_path + '*')
+    files = []
 
-"""
-Reveal the motes folder in Finder
-"""
-class RevealCommand(Command):
+    for idx, file in enumerate(raw_files):
+      files.append(basename(file))
 
-  def exe(self):
-    pbs.open(self.motes.home)
-
-    CommandLogger('All your motes are belong to Finder.', True)
+    return files
 
 
 """
@@ -269,8 +232,8 @@ class MotesInstaller:
     else:
       install_motes_path = raw_input('Where do you want Motes to be installed? Please give the full path, no ~. \'Motes\' directory will be created: ')
 
-      if len(install_motes_path) > 0 and path.exists(install_motes_path):
-        install_motes_path = path.normpath(install_motes_path + '/Motes')
+      if len(install_motes_path) > 0 and exists(install_motes_path):
+        install_motes_path = normpath(install_motes_path + '/Motes')
 
         if pbs.mkdir(install_motes_path, '-p') == 0:
           self.set_path(install_motes_path)
@@ -289,7 +252,7 @@ class MotesInstaller:
 
       path_f.close()
 
-      if path.exists(target):
+      if exists(target):
         return target + '/'
       else:
         return False
@@ -305,6 +268,7 @@ class MotesInstaller:
       self.path = target
     except IOError:
       CommandError('Error installing Motes.').exe()
+
 
 """
 Helper functions
