@@ -38,7 +38,7 @@ class Motes:
       except Exception, e:
         CommandError(e.message).exe()
 
-  def exec_command(self):
+  def fetch_command(self):
     return Motes.commands()[self.command](self.home, self.args)
 
   @staticmethod
@@ -49,6 +49,7 @@ class Motes:
       'find': FindCommand,
       'list': ListCommand, 
       'open': OpenCommand,
+      'print': ContentCommand,
       'reveal': RevealCommand
     }
 
@@ -127,6 +128,7 @@ class SiteCommand(Command):
  
     pbs.open('http://0.0.0.0:5000')
 
+
 """
 Open a Mote
 """
@@ -168,17 +170,22 @@ Fetch motes content
 class ContentCommand(Command):
 
   def exe(self):
-    CommandLogger('Contents of `' + self.file_name() + '`\n.', True)    
+    CommandLogger('Contents of `' + self.file_name() + '`.\n', True)    
     
-    print self.get_content()
+    contents = self.get_content()
+
+    if not contents:
+      print '# File not found'
+    else:
+      print contents
 
   def get_content(self):
-    filepath = self.motes.home + self.file_name()
-
+    filepath = self.motes_path + self.file_name()
+    
     if not path.isfile(filepath):
-      output = '# File not found'
+      output = False
     else:
-      output = pbs.cat(filepath)
+      output = open(filepath, 'r').read()
 
     return output
 
@@ -255,14 +262,14 @@ class ListCommand(Command):
       CommandLogger('All motes\n', True)
 
     for idx, file in enumerate(files):
-      CommandLogger('[' + str(idx) + ']\t' + file)
+      CommandLogger('[' + str(idx) + ']\t' + PathCleaner(path.basename(file)).short())
 
   def files(self):
     raw_files = glob.glob(self.motes_path + '*')
     files = []
 
     for idx, file in enumerate(raw_files):
-      files.append(basename(file))
+      files.append(path.basename(file))
 
     return files
 

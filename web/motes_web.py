@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 
 import sys
-import json
+import simplejson as json
 
 from os import path
 from flask import Flask, render_template
@@ -12,16 +12,13 @@ Import lib
 """
 sys.path.append(sys.path[0] + '/..')
 
-from lib.motes import ListCommand, MotesInstaller, ContentCommand
+from lib.motes import ListCommand, MotesInstaller, ContentCommand, PathCleaner
 
 """
 App
 """
 app = Flask(__name__)
 mi = MotesInstaller(path.abspath(path.dirname(__file__)) + '/../bin')
-
-c = ContentCommand(mi.path, 'test')
-print c.get_content()
 
 """
 Routes
@@ -43,7 +40,10 @@ def get_mote(name=None):
 @app.route('/motes')
 def get_motes():
   lc = ListCommand(mi.path, False)
-  files = lc.files()
+  files = []
+
+  for file in lc.files():
+    files.append(PathCleaner(file).short())
 
   return json.dumps(files)
 
