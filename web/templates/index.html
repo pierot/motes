@@ -60,6 +60,7 @@
         doc.close()
 
       convert_mote: (mote_name, mote_content) =>
+        console.log(mote_name, mote_content)
         $.ajax({
           url: "http://documentup.com/compiled",
           dataType: "jsonp",
@@ -79,9 +80,8 @@
     $(window).resize (e) =>
       setTimeout(m.window_resize, 0)
 
-    $('#top ul li').delegate 'a', 'click', (e) =>
-      console.log($(this))
-      m.get_mote($(this).html())
+    $('#top ul li a').live 'click', (e) =>
+      m.get_mote(e.currentTarget.innerText)
     
     # Init
     m.get_all_motes()
