@@ -42,6 +42,8 @@
           success: (list) =>
             for mote in list
               $('#top ul').append('<li><a href="#' + mote + '">' + mote + '</a></li>')
+
+            $('#top ul li a:first-child').click()
         })
 
       get_mote: (name) =>
@@ -60,7 +62,6 @@
         doc.close()
 
       convert_mote: (mote_name, mote_content) =>
-        console.log(mote_name, mote_content)
         $.ajax({
           url: "http://documentup.com/compiled",
           dataType: "jsonp",
@@ -85,7 +86,6 @@
     
     # Init
     m.get_all_motes()
-    m.get_mote('aap')
 
   </script>
 

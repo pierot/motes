@@ -17,27 +17,25 @@ from lib.motes import ListCommand, MotesInstaller, ContentCommand, PathCleaner
 """
 App
 """
-app = Flask(__name__)
+motesite = Flask(__name__)
 mi = MotesInstaller(path.abspath(path.dirname(__file__)) + '/../bin')
 
 """
 Routes
 """
-@app.route('/')
+@motesite.route('/')
 def root():
   return render_template('index.html')
 
-@app.route('/mote/<name>')
+@motesite.route('/mote/<name>')
 def get_mote(name=None):
   c = ContentCommand(mi.path, name)
 
-  data = {}
-  data['name'] = name
-  data['content'] = c.get_content()
+  data = {'name': name, 'content': c.get_content()}
 
-  return json.dumps(data)
+  return Response(json.dumps(data), mimetype='application/json')
 
-@app.route('/motes')
+@motesite.route('/motes')
 def get_motes():
   lc = ListCommand(mi.path, False)
   files = []
@@ -45,10 +43,14 @@ def get_motes():
   for file in lc.files():
     files.append(PathCleaner(file).short())
 
-  return json.dumps(files)
+  return Response(json.dumps(files), mimetype='application/json')
+
+@motesite.errorhandler(500)
+def server_error(error):
+  return render_template('500.html'), 500
 
 """
 Main
 """
 if __name__ == '__main__':
-  app.run(host='0.0.0.0')
+  motesite.run(host='0.0.0.0', port=3000)

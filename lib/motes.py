@@ -3,14 +3,14 @@
 import sys
 import glob
 import pbs
-import subprocess
 
 from os import environ, path
 
-
 """
-Motes class. Needs to know where the Motes are located,
-a command and maybe some arguments
+Motes class. Needs to know:
+  * where the Motes are located
+  * a command 
+  * and maybe some arguments
 """
 class Motes:
 
@@ -123,10 +123,12 @@ class SiteCommand(Command):
   
   def exe(self):
     CommandLogger('Motes site is opening ..', True)
+
+    from web.motes import motesite
     
-    #import motes_web
+    motesite.run(host='0.0.0.0', port=3000)
  
-    pbs.open('http://0.0.0.0:5000')
+    pbs.open('http://0.0.0.0:3000', _fg=True)
 
 
 """
@@ -136,7 +138,7 @@ class OpenCommand(Command):
 
   def exe(self):
     if len(self.args) == 0:
-      SiteCommand(self.motes.home, None).exe()
+      SiteCommand(self.motes_path, None).exe()
     else:
       filename = self.args[0]
       filenr = int(filename) if filename.isdigit() else -1
