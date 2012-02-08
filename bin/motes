@@ -8,12 +8,6 @@ import pbs
 
 from os import environ, path
 
-"""
-Import lib
-"""
-sys.path.append(sys.path[0] + '/..')
-
-from lib.motes import MotesInstaller, Motes, CommandLogger, CommandError
 
 """
 Require minimum Python version
@@ -21,10 +15,96 @@ Require minimum Python version
 if sys.version_info < (2, 7):
   CommandError('Wrong Python Version!\n  >= 2.7 is required.').exe()
 
+
 """
-Default init
+Import lib
 """
-if __name__ == '__main__':
+sys.path.append(sys.path[0] + '/..')
+
+from lib.motes import MotesInstaller, Motes, CommandLogger, CommandError, ListCommand
+
+__path__ = path.abspath(path.dirname(__file__))
+
+
+"""
+Import optcomplete
+"""
+try:
+  import optcomplete
+
+  NoneCompleter = optcomplete.NoneCompleter
+  CmdComplete = optcomplete.CmdComplete
+
+  """
+  Autocomplete subcommands and files
+  """
+  class CmdList(CmdComplete):
+
+    __doc__ = ''
+
+    names = None
+    completer = None
+
+    def __init__(self, cmd_list, f_list):
+      self.names = cmd_list
+      self.completer = optcomplete.ListCompleter(f_list)
+
+    def addopts(self, parser):
+      pass
+
+except ImportError:
+  optcomplete = None
+
+
+"""
+Auotcomplete motes files
+"""
+class FilesCompleter:
+  
+  def __init__(self, motes_path):
+    self.path = motes_path
+
+  def __call__(self, pwd, line, point, prefix, suffix):
+    return self.fetch_list()
+
+  def fetch_list(self):
+    lc = ListCommand(self.path, False)
+    files = lc.files()
+
+    files_list = []
+
+    for idx, file in enumerate(files):
+      files_list.append(file)
+
+    return files_list
+
+
+"""
+Map autocomplete to optionparser
+
+More info:
+  http://hg.proclos.com/css/file/cbe87dd92ccf/src/css/optcomplete.py
+  http://furius.ca/optcomplete/bin/optcomplete-commands
+"""
+def map_autocomplete(parser, file_path):
+  fl = FilesCompleter(file_path).fetch_list()
+  cmdl = CmdList(Motes.commands().keys(), fl)
+
+  subcmds = [cmdl]
+  scmap = {}
+
+  for sc in subcmds:
+    for n in sc.names:
+      scmap[n] = sc
+
+  listcter = optcomplete.ListCompleter(scmap.keys())
+  optcomplete.autocomplete(parser, listcter, NoneCompleter(), NoneCompleter(), subcommands=scmap)
+
+
+"""
+Main routine
+"""
+def main():
   usage = 'Usage: %prog [command] [options]'
 
   parser = optparse.OptionParser(usage, prog='Motes', version='%prog version 0.1')
@@ -32,13 +112,16 @@ if __name__ == '__main__':
   parser.add_option('-p', '--path', action='store_true', help='prints motes folder path')
   parser.add_option('-k', '--kitten', action='store_true', help='show me a kitten')
 
-  (options, arguments) = parser.parse_args()
+  mi = MotesInstaller(__path__)
 
   try:
-    mi = MotesInstaller(path.abspath(path.dirname(__file__)))
-
     if not mi.installed():
       mi.install()
+
+    if optcomplete:
+      map_autocomplete(parser, mi.path)
+
+    (options, arguments) = parser.parse_args()
 
     if options.path:
       CommandLogger('Motes home directory: \n', True)
@@ -49,13 +132,18 @@ if __name__ == '__main__':
 
     else:
       if len(arguments) < 1:
-        CommandLogger('Insufficient arguments given.', True)
+        CommandError('Insufficient arguments given.').exe()
 
-        sys.exit()
-
-      else: 
+      else: # Launch command
         m = Motes(mi.path, arguments[0], arguments[1::])
   except KeyboardInterrupt:
-    print ""
+    CommandLogger('Motes quit', True)
 
     pass
+
+
+"""
+Default init
+"""
+if __name__ == '__main__':
+  main()

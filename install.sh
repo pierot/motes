@@ -14,6 +14,8 @@ do
     [yY])
       ln -sf "$DIR/bin/motes" /usr/local/bin/motes
 
+      complete -F _optcomplete motes
+
       break
       ;;
     [nN])
