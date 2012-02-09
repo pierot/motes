@@ -1,7 +1,4 @@
 .mote*
-<<<<<<< HEAD
 lib/*.pyc
 *DS_Store
-=======
 *pyc
->>>>>>> autocomplete
