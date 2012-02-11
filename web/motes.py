@@ -45,7 +45,7 @@ def root():
 def get_mote(name=None):
   c = ContentCommand(motes_path, name)
 
-  data = {'name': name, 'content': c.contents}
+  data = {'name': name, 'content': c.contents if len(c.contents) > 0 else ' '}
 
   return Response(json.dumps(data), mimetype='application/json')
 

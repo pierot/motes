@@ -105,12 +105,14 @@ def map_autocomplete(parser, file_path):
 Main routine
 """
 def main():
-  usage = 'Usage: %prog [command] [options]'
+  usage = 'Usage: %prog [subcommand] [options]'
+  desc = '''Motes is a little program that allows you to create, open, edit, delete .. manage notes from the command line.'''
 
-  parser = optparse.OptionParser(usage, prog='Motes', version='%prog version 0.1')
+  parser = optparse.OptionParser(add_help_option=False, usage=usage, prog='Motes', description=desc, version='%prog version 0.1')
 
   parser.add_option('-p', '--path', action='store_true', help='prints motes folder path')
   parser.add_option('-k', '--kitten', action='store_true', help='show me a kitten')
+  parser.add_option('-h', '--help', action='store_true', help='show this help message')
 
   mi = MotesInstaller(__path__)
 
@@ -127,12 +129,26 @@ def main():
       CommandLogger('Motes home directory: \n', True)
       CommandLogger(mi.path)
 
+    elif options.help:
+      print parser.format_help().strip()
+
+      print '''
+Subcommands:
+  open [name|number]        Opens a mote
+  create [name]             Creates a mote
+  delete [name|number]      Deletes a mote
+  list                      List all your motes
+  find [search_string]      Searches in your motes, accepts regex
+  print [name|number]       Prints your mote to the command line
+  reveal                    Opens your motes folder in Finder (Mac OSX only)
+      '''
+
     elif options.kitten:
       pbs.open('http://placekitten.com/800/600')
 
     else:
       if len(arguments) < 1:
-        CommandError('Insufficient arguments given.').exe()
+        CommandError('No subcommand given.').exe()
 
       else: # Launch command
         m = Motes(mi.path, arguments[0], arguments[1::])
