@@ -21,7 +21,8 @@ Import lib
 """
 sys.path.append(sys.path[0] + '/..')
 
-from lib.motes import MotesInstaller, Motes, CommandLogger, CommandError, ListCommand
+from lib.motes import Motes, CommandLogger, CommandError, ListCommand
+from lib.installer import MotesInstaller
 
 __path__ = path.abspath(path.dirname(__file__))
 
