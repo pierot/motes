@@ -3,6 +3,9 @@
 import sys
 import glob
 import pbs
+import re
+import urllib
+import base64
 
 from os import environ, path
 
@@ -52,7 +55,8 @@ class Motes:
       'list': ListCommand, 
       'open': OpenCommand,
       'print': ContentCommand,
-      'reveal': RevealCommand
+      'reveal': RevealCommand,
+      'share': ShareCommand
     }
 
 
@@ -114,6 +118,21 @@ class Command(object):
     self.args = args
     self.motes_path = motes_path
 
+  @property
+  def filename(self):
+    filename = self.args[0] if type(self.args) == list else self.args
+    filenr = int(filename) if filename.isdigit() else -1
+   
+    if filenr > -1:
+      files = glob.glob(self.motes_path + '*')
+
+      filepath = files[filenr] if len(files) > filenr else ''
+      filename = path.basename(filepath)
+    else:
+      filename = PathCleaner(filename).long()
+
+    return filename
+
   def exe(self):
     raise NotImplementedError('Should have implemented this')
 
@@ -126,7 +145,7 @@ class SiteCommand(Command):
   def exe(self):
     CommandLogger('Motes site is opening ..', True)
 
-    #pbs.open('http://0.0.0.0:3000', _fg=True)
+    pbs.open('http://0.0.0.0:3000', _fg=True)
 
     from web.motes import motes_web_start
     
@@ -141,17 +160,7 @@ class OpenCommand(Command):
     if len(self.args) == 0:
       SiteCommand(self.motes_path, None).exe()
     else:
-      filename = self.args[0]
-      filenr = int(filename) if filename.isdigit() else -1
-     
-      if filenr > -1:
-        files = glob.glob(self.motes_path + '*')
-
-        filepath = files[filenr] if len(files) > filenr else ''
-        filename = path.basename(filepath)
-      else:
-        filename = PathCleaner(filename).long()
-        filepath = self.motes_path + filename
+      filepath = self.motes_path + self.filename
 
       if not path.isfile(filepath):
         make_msg = 'Mote does not exist: do you want to create it?'
@@ -170,10 +179,39 @@ class OpenCommand(Command):
 """
 Fetch motes content
 """
+class ShareCommand(Command):
+
+  def exe(self):
+    CommandLogger('Sharing `' + self.filename + '`.\n', True)    
+   
+    c = ContentCommand(self.motes_path, self.filename)
+     
+    file_content = c.contents if len(c.contents) > 0 else ' '
+
+    #file_unescaped_encoded = urllib.quote(self.encodeURIComponent(file_content))
+    file_unescaped_encoded = file_content
+    file_base64_encoded = base64.b64encode(file_unescaped_encoded)
+    
+    share_url = 'http://hashify.me/' + file_base64_encoded
+
+    CommandLogger(share_url)
+
+    pbs.open(share_url)
+
+  def encodeURIComponent(self, str):
+    def replace(match):
+      return "%" + hex( ord( match.group() ) )[2:].upper()
+
+    return re.sub(r"([^0-9A-Za-z!'()*\-._~])", replace, str.encode('utf-8') ) 
+
+
+"""
+Fetch motes content
+"""
 class ContentCommand(Command):
 
   def exe(self):
-    CommandLogger('Contents of `' + self.file_name + '`.\n', True)    
+    CommandLogger('Contents of `' + self.filename + '`.\n', True)    
     
     file_content = self.contents
 
@@ -184,7 +222,7 @@ class ContentCommand(Command):
 
   @property
   def contents(self):
-    filepath = self.motes_path + self.file_name
+    filepath = self.motes_path + self.filename
     
     if not path.isfile(filepath):
       output = False
@@ -193,12 +231,6 @@ class ContentCommand(Command):
 
     return output
 
-  @property
-  def file_name(self):
-    filename = self.args[0] if type(self.args) == list else self.args
-
-    return PathCleaner(filename).long()
-    
 
 """
 Creates a Mote
@@ -222,20 +254,10 @@ Deletes a Mote
 class DeleteCommand(Command):
 
   def exe(self):
-    filename = self.args[0] if type(self.args) == list else self.args
-    filenr = int(filename) if filename.isdigit() else -1
-   
-    if filenr > -1:
-      files = glob.glob(self.motes_path + '*')
-
-      filepath = files[filenr] if len(files) > filenr else ''
-      filename = path.basename(filepath)
-    else:
-      filename = PathCleaner(filename).long()
-      filepath = self.motes_path + filename
+    filepath = self.motes_path + self.filename
 
     if path.isfile(filepath):
-      delete_msg = 'Are you sure you want to delete the mote named `' + PathCleaner(filename).short() + '`?'
+      delete_msg = 'Are you sure you want to delete the mote named `' + PathCleaner(self.filename).short() + '`?'
       delete_file = yes_no(delete_msg)
     
       if delete_file:

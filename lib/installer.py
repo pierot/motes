@@ -3,6 +3,7 @@
 
 import os
 import sys
+import pbs
 
 from os import environ, path
 
@@ -14,7 +15,7 @@ Install Motes and get installation directory
 """
 class MotesInstaller:
 
-  default_path = '.motes'
+  default_path = 'Motes'
   config_file = '.motes'
   cmd_path = ''
 
@@ -29,23 +30,27 @@ class MotesInstaller:
 
   def install(self):
     CommandLogger('Motes wasn\'t installed yet.', True)
-    
-    do_install = yes_no_quit('Install Motes in your home directory (~/.motes)?')
 
+    default_full_path = environ['HOME'] + '/' + self.default_path
+    do_install = yes_no_quit('Install Motes in your home directory (' + default_full_path + ')?')
+    
     if do_install:
-      self.set_path(environ['HOME'] + '/' + self.default_path)
+      self.create_motes_dir(default_full_path)
     else:
-      install_motes_path = raw_input('Where do you want Motes to be installed? Please give the full path, no ~. \'Motes\' directory will be created: ')
+      install_motes_path = raw_input('Where do you want Motes to be installed? Please give full path (no \'~\'). \'Motes\' directory will be created: ')
 
       if len(install_motes_path) > 0 and path.exists(install_motes_path):
         install_motes_path = path.normpath(install_motes_path + '/Motes')
 
-        if pbs.mkdir(install_motes_path, '-p') == 0:
-          self.set_path(install_motes_path)
-        else:
-          CommandError('Motes install directory could not be created. Permissions problem?', True).exe()
+        self.create_motes_dir(install_motes_path)
       else:
         CommandError('Given path did not exists.').exe()
+
+  def create_motes_dir(self, path):
+    if pbs.mkdir(path, '-p') == 0:
+      self.set_path(install_motes_path)
+    else:
+      CommandError('Motes install directory could not be created. Permissions problem?').exe()
 
   def config_path(self):
     return self.cmd_path + self.config_file

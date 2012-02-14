@@ -25,7 +25,6 @@ List all motes
 `motes list`
 
 Opens site with all motes
-(Feature not added yet)
 
 `motes open`
 
@@ -33,3 +32,11 @@ Show the Motes directory with all motes.
 (thanks to @jeroenbourgois)
 
 `motes reveal`
+
+Prints the mote to your cli
+
+`motes print [name|number]`
+
+Gives you a shareable link to your mote
+
+`motes share [name|number]`

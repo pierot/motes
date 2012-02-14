@@ -115,7 +115,7 @@ def main():
   parser.add_option('-k', '--kitten', action='store_true', help='show me a kitten')
   parser.add_option('-h', '--help', action='store_true', help='show this help message')
 
-  mi = MotesInstaller(__path__)
+  mi = MotesInstaller(environ['HOME']) # __path__
 
   try:
     if not mi.installed():
@@ -141,6 +141,7 @@ Subcommands:
   list                      List all your motes
   find [search_string]      Searches in your motes, accepts regex
   print [name|number]       Prints your mote to the command line
+  share [name|number]       Share your mote
   reveal                    Opens your motes folder in Finder (Mac OSX only)
       '''
 
@@ -154,7 +155,7 @@ Subcommands:
       else: # Launch command
         m = Motes(mi.path, arguments[0], arguments[1::])
   except KeyboardInterrupt:
-    CommandLogger('Motes quit', True)
+    CommandLogger('\nMotes quit', True)
 
     pass
 
