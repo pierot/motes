@@ -307,6 +307,6 @@ Reveal the motes folder in Finder
 class RevealCommand(Command):
 
   def exe(self):
-    pbs.open(self.motes.home)
+    pbs.open(self.motes_path)
 
     CommandLogger('All your motes are belong to Finder.', True)
