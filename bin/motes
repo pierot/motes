@@ -121,6 +121,8 @@ def main():
     if not mi.installed():
       mi.install()
 
+      sys.exit()
+
     if optcomplete:
       map_autocomplete(parser, mi.path)
 
@@ -141,7 +143,7 @@ Subcommands:
   list                      List all your motes
   find [search_string]      Searches in your motes, accepts regex
   print [name|number]       Prints your mote to the command line
-  share [name|number]       Share your mote
+  share [name|number]       Share your mote through url
   reveal                    Opens your motes folder in Finder (Mac OSX only)
       '''
 

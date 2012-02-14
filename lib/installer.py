@@ -47,9 +47,13 @@ class MotesInstaller:
         CommandError('Given path did not exists.').exe()
 
   def create_motes_dir(self, path):
-    if pbs.mkdir(path, '-p') == 0:
-      self.set_path(install_motes_path)
-    else:
+    try:
+      pbs.mkdir(path)
+    except pbs.ErrorReturnCode_1:
+      CommandLogger('Motes directory already existed, no new directory is created.', True)
+
+      self.set_path(path)
+    except pbs.ErrorReturnCode_2:
       CommandError('Motes install directory could not be created. Permissions problem?').exe()
 
   def config_path(self):
