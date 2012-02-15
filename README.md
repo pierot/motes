@@ -6,27 +6,35 @@ Forget Evernote, use Motes.
 
 ## Usage
 
-Create mote with name
-    `motes create [name]`
+#### Create mote with name
 
-Find mote, use string or regexp
-    `motes find [string]`
+`motes create [name]`
 
-Open mote with specific name or number
-    `motes open [name|number]`
+#### Find mote, use string or regexp
 
-List all motes
-    `motes list`
+`motes find [string]`
 
-Opens site with all motes
-    `motes open`
+#### Open mote with specific name or number
 
-Show the Motes directory with all motes.
+`motes open [name|number]`
+
+#### List all motes
+
+`motes list`
+
+#### Opens site with all motes
+
+`motes open`
+
+#### Show the Motes directory with all motes.
 (thanks to @jeroenbourgois)
-    `motes reveal`
 
-Prints the mote to your cli
-    `motes print [name|number]`
+`motes reveal`
 
-Gives you a shareable link to your mote
-    `motes share [name|number]`
+#### Prints the mote to your cli
+
+`motes print [name|number]`
+
+#### Gives you a shareable link to your mote
+
+`motes share [name|number]`
