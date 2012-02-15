@@ -271,10 +271,13 @@ class FindCommand(Command):
 
   def exe(self):
     search = self.args[0] if type(self.args) == list else self.args
-    
-    CommandLogger('Motes will search for `' + search + '` in your motes', True)
+    search_string = search + ' ' + self.motes_path 
 
-    pbs.ack(search + ' ' + self.motes_path, '-a', '-i')
+    CommandLogger('Motes will search for `' + search + '` in your motes', True)
+    
+    result = pbs.ack(search_string, '-a', '-i', '-u', '--flush', '--nopager', _fg=True)
+
+    print result
 
 
 """
@@ -307,6 +310,6 @@ Reveal the motes folder in Finder
 class RevealCommand(Command):
 
   def exe(self):
-    pbs.open(self.motes_path)
+    pbs.open(self.motes.home)
 
     CommandLogger('All your motes are belong to Finder.', True)
