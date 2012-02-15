@@ -7,26 +7,26 @@ Forget Evernote, use Motes.
 ## Usage
 
 Create mote with name
-`motes create [name]`
+    `motes create [name]`
 
 Find mote, use string or regexp
-`motes find [string]`
+    `motes find [string]`
 
 Open mote with specific name or number
-`motes open [name|number]`
+    `motes open [name|number]`
 
 List all motes
-`motes list`
+    `motes list`
 
 Opens site with all motes
-`motes open`
+    `motes open`
 
 Show the Motes directory with all motes.
 (thanks to @jeroenbourgois)
-`motes reveal`
+    `motes reveal`
 
 Prints the mote to your cli
-`motes print [name|number]`
+    `motes print [name|number]`
 
 Gives you a shareable link to your mote
-`motes share [name|number]`
+    `motes share [name|number]`
