@@ -6,5 +6,7 @@ TODOS
 * (X) python 2.7.x minimum?
 * autocomplete subcommands and motes (http://bash-completion.alioth.debian.org/)
 * (X) https://github.com/amoffat/pbs
-* DocumentUp (http://documentup.com/#section-5-3)
+* (X) DocumentUp (http://documentup.com/#section-5-3)
 * import option, Evernote import support ?
+* Share url in clipboard
+* Hashify to python class
